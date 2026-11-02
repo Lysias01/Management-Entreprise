@@ -1,7 +1,7 @@
 /* Banque de questions.
    Types : qcm (choix multiple), vf (vrai/faux), open (réponse à saisir), ordre (remettre dans l'ordre)
-   src : "prof" = QCM fourni par l'enseignant / préparation du devoir ; "25qcm" = série « 25 QCM corrigés » (corrigée) ; sinon cours.
-   fix : remarque quand le corrigé d'origine contenait une erreur. */
+   src : "prof" = QCM fourni par l'enseignant / préparation du devoir ; "25qcm" = série « 25 QCM corrigés » (reprise mot pour mot) ; sinon cours.
+   fix : remarque quand le corrigé officiel contredit le cours (la question reste intacte). */
 (function () {
   var Q = [];
   // qcm(ch, question, options, indexBonneRéponse, explication, src, opts)
@@ -12,142 +12,150 @@
   function ordre(ch, q, items, ex) { Q.push({ t: "ordre", ch: ch, q: q, items: items, ex: ex || "", src: "cours" }); }
 
   /* =====================================================================
-     QCM DU PROF (préparation du devoir) — priorité absolue
+     QCM DU PROF (préparation du devoir) — repris mot pour mot, options dans l'ordre d'origine
      ===================================================================== */
+  var K = { keep: true };
   qcm("c4", "Quelle est la première étape du processus de planification stratégique ?",
     ["Élaboration de la stratégie", "Évaluation des résultats", "Analyse de l'environnement externe et interne", "Mise en œuvre de la stratégie"], 2,
-    "On commence toujours par le diagnostic : analyser l'environnement (externe et interne) avant de formuler, mettre en œuvre puis évaluer.", "prof");
+    "On commence toujours par le diagnostic : analyser l'environnement (externe et interne) avant de formuler, mettre en œuvre puis évaluer.", "prof", K);
   qcm("c4", "Quel outil est souvent utilisé pour analyser les forces, faiblesses, opportunités et menaces d'une entreprise ?",
     ["Matrice BCG", "Matrice SWOT", "Analyse PESTEL", "Diagramme de Gantt"], 1,
-    "SWOT = Strengths (forces), Weaknesses (faiblesses), Opportunities (opportunités), Threats (menaces).", "prof");
+    "SWOT = Strengths (forces), Weaknesses (faiblesses), Opportunities (opportunités), Threats (menaces).", "prof", K);
   qcm("c4", "Quel est l'objectif principal d'une analyse PESTEL ?",
     ["Évaluer la performance financière de l'entreprise", "Identifier les facteurs macro-environnementaux influençant l'entreprise", "Analyser les forces et faiblesses internes", "Déterminer les coûts de production"], 1,
-    "PESTEL analyse le macro-environnement (Politique, Économique, Socioculturel, Technologique, Écologique, Légal). Forces/faiblesses internes = SWOT.", "prof");
+    "PESTEL analyse le macro-environnement (Politique, Économique, Socioculturel, Technologique, Écologique, Légal). Forces/faiblesses internes = SWOT.", "prof", K);
   qcm("c5", "Quel est le rôle principal d'un tableau de bord stratégique ?",
     ["Réaliser des études de marché", "Suivre les indicateurs de performance clés", "Élaborer des prévisions financières", "Gérer les ressources humaines"], 1,
-    "Le tableau de bord regroupe visuellement les KPI pour suivre la performance et aider à la décision.", "prof");
+    "Le tableau de bord regroupe visuellement les KPI pour suivre la performance et aider à la décision.", "prof", K);
   qcm("c4", "Quel est l'impact d'une bonne gestion stratégique sur une entreprise ?",
     ["Augmentation des dettes à long terme", "Amélioration de la compétitivité et de la rentabilité", "Réduction de l'innovation", "Diminution de la satisfaction client"], 1,
-    "Les trois autres réponses sont des effets négatifs : seule l'amélioration de la compétitivité et de la rentabilité est logique.", "prof");
+    "Les trois autres réponses sont des effets négatifs : seule l'amélioration de la compétitivité et de la rentabilité est logique.", "prof", K);
   qcm("c4", "Quel modèle est souvent utilisé pour analyser la concurrence dans une industrie ?",
-    ["Le modèle PESTEL", "Le modèle de McKinsey", "La matrice BCG", "Le modèle des cinq forces de Porter"], 3,
-    "Les 5 forces de Porter mesurent l'intensité concurrentielle d'un secteur (entrants, fournisseurs, clients, substituts, rivalité).", "prof");
+    ["Le modèle PESTEL.", "Le modèle de McKinsey.", "La matrice BCG.", "Le modèle des cinq forces de Porter."], 3,
+    "Les 5 forces de Porter mesurent l'intensité concurrentielle d'un secteur (entrants, fournisseurs, clients, substituts, rivalité).", "prof", K);
   qcm("c5", "Quel est le rôle principal d'un responsable opérationnel ?",
-    ["Gérer les ressources humaines", "Élaborer des politiques de marketing", "Définir la vision stratégique de l'entreprise", "Superviser les activités quotidiennes de l'entreprise"], 3,
-    "Opérationnel = quotidien. Définir la vision relève du management stratégique (direction générale).", "prof");
+    ["Gérer les ressources humaines.", "Élaborer des politiques de marketing.", "Définir la vision stratégique de l'entreprise.", "Superviser les activités quotidiennes de l'entreprise"], 3,
+    "Opérationnel = quotidien. Définir la vision relève du management stratégique (direction générale).", "prof", K);
   qcm("c5", "Dans le cadre de la gestion opérationnelle, qu'est-ce que l'optimisation des processus ?",
-    ["Réduire le temps de travail des employés", "Éliminer complètement les procédures standard", "Augmenter le nombre d'étapes dans un processus", "Améliorer l'efficacité et réduire les coûts des opérations"], 3,
-    "Optimiser = faire mieux avec moins : plus d'efficacité, moins de coûts.", "prof");
+    ["Réduire le temps de travail des employés.", "Éliminer complètement les procédures standard.", "Augmenter le nombre d'étapes dans un processus.", "Améliorer l'efficacité et réduire les coûts des opérations."], 3,
+    "Optimiser = faire mieux avec moins : plus d'efficacité, moins de coûts.", "prof", K);
   qcm("c5", "Quelle méthode est souvent utilisée pour analyser les processus opérationnels ?",
     ["Le SWOT", "La matrice BCG", "La cartographie des processus", "Le PESTEL"], 2,
-    "SWOT, BCG et PESTEL sont des outils stratégiques. Pour les processus (opérationnel), on les cartographie.", "prof");
+    "SWOT, BCG et PESTEL sont des outils stratégiques. Pour les processus (opérationnel), on les cartographie.", "prof", K);
   qcm("c5", "Quelle approche est souvent utilisée pour améliorer la qualité dans les opérations ?",
     ["Planification stratégique", "Gestion des ressources humaines", "Analyse de marché", "Six Sigma"], 3,
-    "Le mot « opérations » exclut la planification stratégique. Six Sigma (Lean Six Sigma) réduit les défauts : c'est une méthode de qualité.", "prof");
+    "Le mot « opérations » exclut la planification stratégique. Six Sigma (Lean Six Sigma) réduit les défauts : c'est une méthode de qualité.", "prof", K);
   qcm("c3", "Quel élément est essentiel pour définir un modèle économique ?",
     ["Le type de produits uniquement", "La localisation géographique", "Le nombre d'employés", "La proposition de valeur"], 3,
-    "La proposition de valeur est le 1er pilier du business model. Attention au mot « uniquement » qui rend la réponse A fausse.", "prof");
+    "La proposition de valeur est le 1er pilier du business model. Attention au mot « uniquement » qui rend la première réponse fausse.", "prof", K);
   qcm("c3", "Quel élément du Business Model Canvas décrit les activités clés d'une entreprise ?",
     ["Canaux", "Proposition de valeur", "Activités clés", "Segments de clients"], 2,
-    "La réponse est dans la question : le bloc « Activités clés ».", "prof");
+    "La réponse est dans la question : le bloc « Activités clés ».", "prof", K);
   qcm("c3", "Dans le Business Model Canvas, quel bloc est consacré à la manière dont une entreprise fait des profits ?",
     ["Structure des coûts", "Relations avec les clients", "Ressources clés", "Flux de revenus"], 3,
-    "Les flux de revenus décrivent d'où vient l'argent. La structure des coûts décrit où il part.", "prof");
+    "Les flux de revenus décrivent d'où vient l'argent. La structure des coûts décrit où il part.", "prof", K);
   qcm("c3", "Quel élément du Business Model Canvas décrit comment une entreprise communique et livre sa proposition de valeur ?",
     ["Canaux", "Ressources clés", "Partenaires clés", "Activités clés"], 0,
-    "Les canaux = comment la proposition de valeur est délivrée au client (communication, distribution, vente).", "prof");
+    "Les canaux = comment la proposition de valeur est délivrée au client (communication, distribution, vente).", "prof", K);
   qcm("c4", "Dans l'analyse PESTEL, quel facteur est lié aux tendances démographiques et culturelles ?",
     ["Politique", "Environnemental", "Socioculturel"], 2,
-    "Démographie, culture, modes de vie, éducation = facteur Socioculturel (le S de PESTEL).", "prof");
+    "Démographie, culture, modes de vie, éducation = facteur Socioculturel (le S de PESTEL).", "prof", K);
   qcm("c4", "Dans le cadre de l'analyse PESTEL, quel facteur politique pourrait affecter une entreprise ?",
     ["Coût de production", "Stabilité gouvernementale", "Technologie utilisée"], 1,
-    "Coût de production = économique/interne ; technologie = T. La stabilité du gouvernement est un facteur Politique.", "prof");
+    "Coût de production = économique/interne ; technologie = T. La stabilité du gouvernement est un facteur Politique.", "prof", K);
   qcm("c4", "Quelle est la principale caractéristique du management stratégique ?",
-    ["Il se concentre sur la vision à long terme de l'entreprise", "Il se concentre uniquement sur la réduction des coûts", "Il gère les tâches quotidiennes des employés", "Il est axé sur la gestion des ressources humaines"], 0,
-    "Stratégique = long terme (plus de 3 ans), vision externe, avenir de l'entreprise. Les tâches quotidiennes = opérationnel.", "prof");
+    ["Il se concentre sur la vision à long terme de l'entreprise.", "Il se concentre uniquement sur la réduction des coûts.", "Il gère les tâches quotidiennes des employés.", "Il est axé sur la gestion des ressources humaines."], 0,
+    "Stratégique = long terme (plus de 3 ans), vision externe, avenir de l'entreprise. Les tâches quotidiennes = opérationnel.", "prof", K);
 
   /* =====================================================================
-     SÉRIE « 25 QCM CORRIGÉS — PLANIFICATION STRATÉGIQUE » (vérifiée)
+     SÉRIE « 25 QCM CORRIGÉS : PLANIFICATION STRATÉGIQUE » — reprise mot pour mot.
+     La bonne réponse est celle du corrigé officiel du document ; « fix » signale
+     quand ce corrigé contredit le cours.
      ===================================================================== */
   qcm("c4", "La planification stratégique est avant tout axée sur :",
-    ["La satisfaction des actionnaires", "La maximisation des profits à court terme", "La vision et la mission de l'organisation", "La réduction des coûts à tout prix"], 2,
-    "Elle définit une vision et une mission claires qui guident les décisions à long terme. « Court terme » et « à tout prix » sont des pièges.", "25qcm");
+    ["La satisfaction des actionnaires.", "La maximisation des profits à court terme.", "La vision et la mission de l'organisation.", "La réduction des coûts à tout prix."], 2,
+    "La planification stratégique est axée sur la définition d'une vision et d'une mission claires pour l'organisation, qui guideront ses décisions et actions à long terme.", "25qcm", K);
   qcm("c4", "L'une des premières étapes de la planification stratégique implique de :",
-    ["Analyser l'environnement externe", "Définir les objectifs financiers", "Établir un budget détaillé", "Identifier uniquement les forces internes"], 0,
-    "Le raisonnement stratégique va de l'externe vers l'interne : on commence par analyser l'environnement externe.", "25qcm");
+    ["Analyser l'environnement externe.", "Définir les objectifs financiers.", "Établir un budget détaillé.", "Identifier les forces et faiblesses internes."], 0,
+    "L'une des premières étapes est d'analyser l'environnement externe (facteurs politiques, économiques, sociaux et technologiques) pour identifier les opportunités et menaces.", "25qcm", K);
   qcm("c5", "La planification opérationnelle se concentre sur :",
-    ["La formulation de stratégies à long terme", "La mise en place de procédures quotidiennes", "L'allocation des ressources pour les initiatives stratégiques", "L'évaluation des performances financières trimestrielles"], 1,
-    "Opérationnel = procédures et processus quotidiens qui soutiennent la mise en œuvre de la stratégie.", "25qcm");
-  qcm("c4", "L'analyse SWOT est un outil utilisé pour :",
-    ["Analyser les tendances du marché boursier", "Identifier les forces et faiblesses de la concurrence", "Croiser les forces/faiblesses internes avec les opportunités/menaces externes", "Établir le budget de l'année"], 2,
-    "SWOT croise l'interne (forces, faiblesses) et l'externe (opportunités, menaces) de l'entreprise elle-même.", "25qcm",
-    { fix: "Dans le PDF, la « bonne réponse » était « Évaluer les opportunités et menaces externes » : c'est incomplet, SWOT couvre aussi l'interne. Question reformulée." });
+    ["La formulation de stratégies à long terme.", "La mise en place de procédures quotidiennes.", "L'allocation des ressources pour les initiatives stratégiques.", "L'évaluation des performances financières trimestrielles."], 1,
+    "La planification opérationnelle se concentre sur la mise en place de procédures et de processus quotidiens pour soutenir la mise en œuvre des stratégies.", "25qcm", K);
+  qcm("c4", "Le SWOT analysis est un outil utilisé pour :",
+    ["Évaluer les opportunités et menaces externes.", "Identifier les forces et faiblesses de la concurrence.", "Définir les objectifs à long terme.", "Analyser les tendances du marché boursier."], 0,
+    "Le SWOT évalue les forces et faiblesses internes, ainsi que les opportunités et menaces externes.", "25qcm",
+    { keep: true, fix: "Réponse du corrigé officiel. Dans le cours, le SWOT couvre aussi l'interne (forces et faiblesses de l'entreprise elle-même) : cette réponse est incomplète, mais c'est la seule acceptable parmi les quatre." });
   qcm("c4", "La planification stratégique efficace implique souvent de :",
-    ["Maintenir le statu quo pour minimiser les risques", "Innover et s'adapter aux changements de l'environnement", "Se concentrer uniquement sur les objectifs financiers", "Ignorer l'impact des parties prenantes externes"], 1,
-    "Le statu quo limite la compétitivité. « Uniquement » et « ignorer » sont des mots-pièges.", "25qcm");
+    ["Maintenir le statu quo pour minimiser les risques.", "Innover et s'adapter aux changements de l'environnement.", "Se concentrer uniquement sur les objectifs financiers.", "Ignorer l'impact des parties prenantes externes."], 1,
+    "La planification stratégique efficace implique de s'adapter et d'innover en réponse aux changements de l'environnement. Le statu quo limite la compétitivité.", "25qcm", K);
   qcm("c4", "L'analyse PESTEL prend en compte les facteurs suivants, SAUF :",
-    ["Politiques", "Économiques", "Financiers internes", "Écologiques"], 2,
-    "PESTEL = Politique, Économique, Socioculturel, Technologique, Écologique, Légal. Les finances internes de l'entreprise n'en font pas partie (c'est du diagnostic interne).", "25qcm",
-    { fix: "Dans le PDF, la réponse donnée était « Écologiques » alors que le E de PESTEL est justement Écologique : la question d'origine n'avait aucune bonne réponse. Question corrigée." });
-  qcm("c4", "La planification stratégique efficace nécessite :",
-    ["Une vision claire et inspirante", "Une compréhension des besoins des clients", "Une collaboration interdépartementale", "Toutes les réponses ci-dessus"], 3,
-    "Les trois éléments sont nécessaires.", "25qcm", { keep: true });
+    ["Politiques.", "Économiques.", "Sociaux-culturels.", "Écologiques."], 3,
+    "Corrigé officiel : D) Écologiques. Explication du document : l'analyse PESTEL prend en compte les facteurs politiques, économiques, sociaux, technologiques, écologiques et légaux.", "25qcm",
+    { keep: true, fix: "Attention : le corrigé officiel donne « Écologiques », alors que le E de PESTEL est justement Écologique. Les quatre options font partie de PESTEL : la question n'a pas de vraie bonne réponse. Retiens la réponse du corrigé pour cette série, mais sache que PESTEL = Politique, Économique, Socioculturel, Technologique, Écologique, Légal." });
+  qcm("c4", "La planification stratégique efficace nécessite une :",
+    ["Vision claire et inspirante.", "Compréhension des besoins des clients.", "Collaboration interdépartementale.", "Toutes les réponses ci-dessus."], 3,
+    "Une planification stratégique efficace nécessite une vision claire, une compréhension des besoins des clients et une collaboration interdépartementale.", "25qcm", K);
   qcm("c4", "Le processus de planification stratégique comprend typiquement :",
-    ["La formulation de la stratégie", "La mise en œuvre de la stratégie", "Le contrôle et l'évaluation de la performance", "Toutes les réponses ci-dessus"], 3,
-    "Formuler → mettre en œuvre → contrôler / évaluer.", "25qcm", { keep: true });
+    ["La formulation de la stratégie.", "La mise en œuvre de la stratégie.", "Le contrôle et l'évaluation de la performance.", "Toutes les réponses ci-dessus."], 3,
+    "Formulation de la stratégie, mise en œuvre, puis contrôle et évaluation de la performance.", "25qcm", K);
   qcm("c5", "Les objectifs SMART sont :",
-    ["Spécifiques, Mesurables, Aléatoires, Réalisables, Temporellement définis", "Simples, Médiatiques, Adaptables, Réguliers, Tendance", "Spécifiques, Mesurables, Atteignables, Réalistes, Temporellement définis", "Stratégiques, Mélangés, Abstraits, Révolutionnaires, Temporels"], 2,
-    "S = Spécifique, M = Mesurable, A = Atteignable (Attainable), R = Réaliste / pertinent (Relevant), T = Temporellement défini (Time based).", "25qcm",
-    { fix: "Le PDF donnait comme bonne réponse « Spécifiques, Mesurables, Aléatoires… » : c'est faux. Le A signifie Atteignable." });
-  qcm("c4", "La matrice croissance / part de marché du BCG classe les activités en :",
-    ["Vedettes, vaches à lait, dilemmes et poids morts", "Vedettes, poids-mouches, chiens et question-marques", "Vainqueurs, perdants, challengers et dormeurs", "Champions, suiveurs, nouveaux venus et indécis"], 0,
-    "Vedettes (forte croissance, forte part), vaches à lait (faible croissance, forte part), dilemmes (forte croissance, faible part), poids morts (faible croissance, faible part).", "25qcm",
-    { fix: "Le PDF donnait « Vedettes, Poids-mouches, Chiens et Question-marques » avec des définitions erronées. La bonne liste est celle ci-dessus." });
+    ["Spécifiques, Mesurables, Aléatoires, Réalisables et Temporellement définis.", "Simples, Médiatiques, Adaptables, Réguliers et Tendanceurs.", "Significatifs, Majestueux, Adaptés, Réalisables et Traditionnels.", "Stratégiques, Mélangés, Abstraits, Révolutionnaires et Temporels."], 0,
+    "Corrigé officiel : A. Explication du document : les objectifs SMART sont spécifiques, mesurables, atteignables, réalistes et limités dans le temps.", "25qcm",
+    { keep: true, fix: "Attention : le corrigé officiel donne la réponse A, qui contient « Aléatoires ». Dans le cours, le A de SMART veut dire Atteignable (Attainable), jamais aléatoire. Ici, A est seulement la « moins fausse » des quatre options." });
+  qcm("c4", "La matrice de croissance-part de marché de l'Boston Consulting Group (BCG) classe les unités d'affaires en :",
+    ["Vedettes, Poids-mouches, Chiens et Question-marques.", "Vedettes, Poids-lourds, Chouchous et Questionnaires.", "Vainqueurs, Perdants, Challengers et Dormeurs.", "Champions, Suiveurs, Nouveaux venus et Indécis."], 0,
+    "Corrigé officiel : A) Vedettes, Poids-mouches, Chiens et Question-marques.", "25qcm",
+    { keep: true, fix: "Attention : la vraie matrice BCG classe les activités en Vedettes, Vaches à lait, Dilemmes (question-marques) et Poids morts (chiens). « Poids-mouches » n'existe pas, et les définitions du document sont fausses. A reste la réponse attendue parce que c'est la plus proche." });
   qcm("c4", "La planification stratégique efficace implique de :",
-    ["S'adapter aux changements technologiques", "Ignorer les tendances technologiques émergentes", "Maintenir des pratiques commerciales traditionnelles", "Sous-traiter toutes les fonctions technologiques"], 0,
-    "Ignorer la technologie met en péril la position de l'entreprise (cf. le T de PESTEL).", "25qcm");
+    ["S'adapter aux changements technologiques.", "Ignorer les tendances technologiques émergentes.", "Maintenir des pratiques commerciales traditionnelles.", "Sous-traiter toutes les fonctions technologiques."], 0,
+    "Il faut s'adapter aux changements technologiques pour rester compétitif. Les ignorer met en péril la position de l'organisation sur le marché.", "25qcm", K);
   qcm("c4", "L'analyse des cinq forces de Porter évalue l'intensité de la concurrence en examinant :",
-    ["Le pouvoir de négociation des clients", "La menace de nouveaux entrants", "Le pouvoir de négociation des fournisseurs", "Toutes les réponses ci-dessus"], 3,
-    "Les 5 forces : nouveaux entrants, fournisseurs, clients, produits de substitution, rivalité entre concurrents.", "25qcm", { keep: true });
+    ["Le pouvoir de négociation des clients.", "La menace de nouveaux entrants.", "Le pouvoir de négociation des fournisseurs.", "Toutes les réponses ci-dessus."], 3,
+    "Les 5 forces : pouvoir des clients et des fournisseurs, menace des nouveaux entrants et des produits de substitution, rivalité entre concurrents existants.", "25qcm", K);
   qcm("c4", "La planification stratégique efficace prend en compte :",
-    ["Les ressources et capacités internes", "Les opportunités et menaces externes", "Les objectifs et stratégies des concurrents", "Toutes les réponses ci-dessus"], 3,
-    "Interne + externe + concurrence.", "25qcm", { keep: true });
+    ["Les ressources et capacités internes.", "Les opportunités et menaces externes.", "Les objectifs et stratégies des concurrents.", "Toutes les réponses ci-dessus."], 3,
+    "Elle prend en compte les facteurs internes et externes, ainsi que les mouvements de la concurrence.", "25qcm", K);
   qcm("c4", "La courbe d'expérience suggère que :",
-    ["Les coûts unitaires diminuent avec l'accumulation de l'expérience", "Les coûts de production augmentent avec le temps", "Les coûts de production restent constants", "Les coûts unitaires augmentent avec l'expansion de la production"], 0,
-    "Plus on produit (production cumulée), plus on apprend, moins le coût unitaire est élevé.", "25qcm");
+    ["Les coûts unitaires diminuent de façon constante avec l'accumulation de l'expérience.", "Les coûts de production augmentent avec le temps.", "Les coûts de production restent constants au fil du temps.", "Les coûts unitaires augmentent avec l'expansion de la production."], 0,
+    "À mesure que l'organisation accumule de l'expérience dans une activité, ses coûts unitaires diminuent.", "25qcm", K);
   qcm("c4", "L'analyse des parties prenantes implique d'identifier et de comprendre :",
-    ["Les besoins et attentes des employés", "L'impact des réglementations gouvernementales", "Les objectifs et stratégies de la concurrence", "Toutes les réponses ci-dessus"], 3,
-    "Employés, État, concurrents… sont tous des parties prenantes.", "25qcm", { keep: true });
+    ["Les besoins et les attentes des employés.", "L'impact des réglementations gouvernementales.", "Les objectifs et les stratégies de la concurrence.", "Toutes les réponses ci-dessus."], 3,
+    "Employés, réglementations gouvernementales, concurrence : tous font partie de l'analyse des parties prenantes.", "25qcm", K);
   qcm("c4", "La planification stratégique efficace implique de :",
-    ["Définir des objectifs clairs et réalistes", "Maintenir des objectifs statiques et immuables", "Ignorer les obstacles potentiels", "Modifier les objectifs en permanence sans analyse"], 0,
-    "Objectifs clairs et réalistes, adaptables si l'environnement change.", "25qcm");
-  qcm("c4", "La matrice produit-marché d'Ansoff propose les stratégies suivantes, SAUF :",
-    ["La pénétration du marché", "Le développement du marché", "La diversification de la concurrence", "Le développement de produit"], 2,
-    "Les 4 stratégies d'Ansoff : pénétration, développement de marché, développement de produit, diversification. « Diversification de la concurrence » n'existe pas.", "25qcm");
+    ["Définir des objectifs clairs et réalistes.", "Maintenir des objectifs statiques et immuables.", "Ignorer les obstacles potentiels à la réalisation des objectifs.", "Modifier les objectifs fréquemment pour s'adapter aux changements."], 0,
+    "Des objectifs clairs et réalistes, qui peuvent être adaptés en fonction des changements de l'environnement.", "25qcm", K);
+  qcm("c4", "La matrice de planification produit-marché d'Ansoff propose les stratégies suivantes, SAUF :",
+    ["La pénétration du marché.", "Le développement du marché.", "La diversification de la concurrence.", "Le développement du produit."], 2,
+    "Ansoff propose pénétration du marché, développement du marché, développement du produit et diversification, mais pas de « diversification de la concurrence ».", "25qcm", K);
   qcm("c4", "La planification stratégique efficace prend en considération :",
-    ["Les valeurs et la culture organisationnelle", "Les objectifs à court terme uniquement", "Les réductions de coûts à tout prix", "Le seul avis du dirigeant"], 0,
-    "Les valeurs font partie du cadre de référence fondamental (vision, vocation, valeurs).", "25qcm");
-  qcm("c4", "L'analyse des écarts (gap analysis) consiste à :",
-    ["Identifier et comprendre les écarts de performance", "Comparer uniquement les prix des concurrents", "Évaluer les forces et faiblesses internes uniquement", "Déterminer les opportunités et menaces externes uniquement"], 0,
-    "Écart entre la performance actuelle et la performance désirée.", "25qcm");
+    ["Les valeurs et la culture organisationnelle.", "Les objectifs à court terme uniquement.", "Les opportunités de croissance et d'expansion.", "Les réductions de coûts à tout prix."], 0,
+    "Les valeurs et la culture organisationnelle influencent la direction et les décisions stratégiques.", "25qcm",
+    { keep: true, fix: "La réponse C (opportunités de croissance) est aussi défendable, mais le corrigé officiel retient A : les valeurs font partie du cadre de référence fondamental (vision, vocation, valeurs)." });
+  qcm("c4", "L'analyse des lacunes (gap analysis) implique de :",
+    ["Identifier et comprendre les écarts de performance.", "Comparer les produits de l'entreprise à ceux de la concurrence.", "Évaluer les forces et faiblesses internes uniquement.", "Déterminer les opportunités et menaces externes uniquement."], 0,
+    "L'analyse des lacunes identifie les écarts entre la performance actuelle et la performance désirée.", "25qcm", K);
   qcm("c4", "La planification stratégique efficace implique souvent de :",
-    ["Collaborer avec d'autres départements", "Travailler de manière isolée", "Ignorer les idées des employés", "Dépendre uniquement de la direction"], 0,
-    "La collaboration interdépartementale aligne les efforts.", "25qcm");
+    ["Collaborer avec d'autres départements.", "Travailler de manière isolée.", "Ignorer les idées et contributions des employés.", "Dépendre uniquement de la direction pour la prise de décision."], 0,
+    "La collaboration interdépartementale aligne les efforts et rend les stratégies réalisables.", "25qcm", K);
   qcm("c4", "Les scénarios de planification sont utiles pour :",
-    ["Préparer l'organisation à différents futurs possibles", "Développer une seule vision du futur", "Éviter l'incertitude en se concentrant sur le présent", "Ignorer les changements futurs probables"], 0,
-    "C'est la logique de la prospective : imaginer plusieurs futurs et choisir un scénario.", "25qcm");
+    ["Préparer l'organisation à différents futurs possibles.", "Développer une seule vision du futur.", "Éviter l'incertitude en se concentrant sur le présent.", "Ignorer les changements futurs probables."], 0,
+    "Les scénarios aident à se préparer à différents futurs possibles et à développer des stratégies flexibles.", "25qcm", K);
   qcm("c4", "La chaîne de valeur :",
-    ["Identifie les activités qui créent de la valeur pour le client", "Se concentre uniquement sur la production", "Ignore les activités de soutien", "Ne tient pas compte des coûts de chaque activité"], 0,
-    "Elle couvre les activités principales ET de soutien.", "25qcm");
-  qcm("c4", "La valeur actuelle nette (VAN / NPV) est une technique de :",
-    ["Évaluation des flux de trésorerie futurs", "Mesure de la satisfaction client", "Mesure de la performance environnementale", "Fixation du prix optimal"], 0,
-    "Elle actualise les flux de trésorerie futurs (valeur temps de l'argent).", "25qcm");
+    ["Identifie les activités qui créent de la valeur pour le client.", "Se concentre uniquement sur les activités de production.", "Ignore les activités de soutien et de logistique.", "Ne prend pas en compte les coûts associés à chaque activité."], 0,
+    "La chaîne de valeur identifie les activités qui créent de la valeur pour le client, y compris les activités de soutien, opérationnelles et de logistique.", "25qcm", K);
+  qcm("c4", "L'analyse de la valeur nette présente (net present value, NPV) est une technique de :",
+    ["Évaluation des flux de trésorerie futurs.", "Évaluation de la satisfaction des clients.", "Mesure de la performance environnementale.", "Détermination du prix optimal du produit."], 0,
+    "La NPV (VAN) évalue les flux de trésorerie futurs en tenant compte de la valeur temps de l'argent.", "25qcm", K);
   qcm("c4", "La planification stratégique efficace implique de :",
-    ["Développer des stratégies alternatives", "Se reposer sur une seule stratégie", "Ignorer les stratégies des concurrents", "Copier aveuglément les concurrents"], 0,
-    "Plusieurs options = meilleure gestion de l'incertitude.", "25qcm");
+    ["Développer des stratégies alternatives.", "Se reposer sur une seule stratégie.", "Ignorer les stratégies des concurrents.", "Copier aveuglément les stratégies des concurrents."], 0,
+    "Plusieurs stratégies alternatives permettent de faire face à l'incertitude.", "25qcm", K);
   qcm("c4", "La gestion stratégique implique de :",
-    ["Formuler, mettre en œuvre et évaluer des stratégies", "Se concentrer uniquement sur la formulation", "Ne pas évaluer la performance", "Modifier les stratégies sans évaluation"], 0,
-    "C'est un processus itératif en trois temps.", "25qcm");
+    ["Formuler, mettre en œuvre et évaluer des stratégies.", "Se concentrer uniquement sur la formulation de stratégies.", "Ne pas tenir compte de l'évaluation de la performance.", "Modifier les stratégies sans évaluation préalable."], 0,
+    "Un processus itératif de formulation, de mise en œuvre et d'évaluation des stratégies.", "25qcm", K);
+  qcm("c4", "Le compte de résultat est également appelé :",
+    ["Bilan.", "Tableau de financement.", "Compte de profits et pertes.", "Flux de trésorerie."], 2,
+    "Le compte de résultat (charges et produits de l'exercice) s'appelle aussi compte de profits et pertes. Le bilan décrit le patrimoine.", "25qcm",
+    { keep: true, fix: "Cette question s'est glissée dans le document (« 25 QCM corrigés : Analyse des Profits et Pertes », QCM 1), sans corrigé. La réponse C est la bonne d'après les notions de comptabilité." });
 
   /* =====================================================================
      CHAPITRE I — Organisation, entreprise, environnement

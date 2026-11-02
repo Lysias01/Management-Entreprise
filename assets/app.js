@@ -35,6 +35,7 @@
   var KEY = "revis-manag-v1";
   var S = { q: {}, f: {}, cases: {}, exams: [], cfg: null };
   try { var raw = localStorage.getItem(KEY); if (raw) { var p = JSON.parse(raw); if (p && typeof p === "object") S = Object.assign(S, p); } } catch (e) { }
+  if (!S.v || S.v < 2) { if (S.cfg) S.cfg.types = ["qcm"]; S.v = 2; }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
   function rec(q, ok) {
     var r = S.q[q.id] || { ok: 0, ko: 0, st: 0 };
@@ -95,6 +96,8 @@
     var last = S.exams.length ? S.exams[S.exams.length - 1] : null;
     var nProf = QUESTIONS.filter(function (q) { return q.src === "prof"; }).length;
     var nErr = errorList().length;
+    var nQcm = QUESTIONS.filter(function (q) { return q.t === "qcm"; }).length;
+    var n25 = QUESTIONS.filter(function (q) { return q.src === "25qcm"; }).length;
     var nMast = QUESTIONS.filter(mastered).length;
     var nCases = CASES.filter(function (c) { return S.cases[c.id] && S.cases[c.id].best != null; }).length;
     var sample = [[1, 2], [2, 1], [3, 3], [4, 1], [5, 0]];
@@ -104,12 +107,13 @@
 
     app.innerHTML = '<div class="view home">' +
       '<section class="hero"><div><span class="eyebrow">IBAM · Master 1 · Semestre 2</span><h1>Ton devoir de management est un QCM. <em>Entraîne-toi sur les vraies questions.</em></h1>' +
-      '<p class="lead"><b>' + QUESTIONS.length + " questions</b> tirées du cours de M. Kiendrebeogo et des QCM fournis, " + FICHES.length + " définitions à mémoriser et " + CASES.length + " cas pratiques expliqués pas à pas.</p>" +
+      '<p class="lead"><b>' + QUESTIONS.length + " questions</b> tirées du cours de M. Kiendrebeogo, dont tous les QCM fournis repris mot pour mot. Le devoir est 100 % QCM : l'entraînement l'est aussi par défaut. " + FICHES.length + " définitions à mémoriser et " + CASES.length + " cas pratiques expliqués pas à pas.</p>" +
       '<div class="row"><a class="btn btn-gold" href="#quiz" data-start="exam">Faire un devoir blanc</a><a class="btn btn-ghost" href="#fiches">Réviser les définitions</a></div></div>' + sheet + "</section>" +
       '<section class="stack"><h2>Choisis ta façon de réviser</h2><div class="modes">' +
       '<button class="mode feature" data-start="prof"><b>Les QCM du prof</b><span>Les ' + nProf + " questions de la préparation du devoir. À connaître par cœur.</span><span class='count'>" + nProf + " questions</span></button>" +
-      '<button class="mode" data-start="exam"><b>Devoir blanc</b><span>20 questions, 20 minutes, correction à la fin, note sur 20.</span><span class="count">Conditions réelles</span></button>' +
-      '<button class="mode" data-start="libre"><b>Entraînement libre</b><span>QCM, vrai/faux, réponses à écrire et remises en ordre, par chapitre.</span><span class="count">' + QUESTIONS.length + " questions</span></button>" +
+      '<button class="mode" data-start="exam"><b>Devoir blanc</b><span>20 QCM, 20 minutes, correction à la fin, note sur 20.</span><span class="count">Conditions réelles</span></button>' +
+      '<button class="mode" data-start="libre"><b>Entraînement libre</b><span>QCM par chapitre, comme le jour du devoir.</span><span class="count">' + nQcm + " QCM</span></button>" +
+      '<button class="mode" data-start="25qcm"><b>Série « 25 QCM »</b><span>La série « 25 QCM corrigés : planification stratégique », telle quelle.</span><span class="count">' + n25 + " questions</span></button>" +
       '<button class="mode" data-start="err"' + (nErr ? "" : " disabled") + '><b>Questions à revoir</b><span>Chaque question ratée s\'ajoute ici toute seule. Elle en sort après 2 bonnes réponses de suite.</span><span class="count">' + (nErr ? plural(nErr, "question") + " à revoir" : "Rien à revoir pour l'instant") + "</span></button>" +
       "</div></section>" +
       '<section class="panel stack"><div class="section-h"><h2>Ta progression</h2><span class="muted small">Enregistrée sur cet appareil</span></div>' +
@@ -127,16 +131,16 @@
      QUIZ
      ========================================================= */
   var QS = null; // session en cours
-  function defaultCfg() { return { mode: "libre", ch: CHAPTERS.map(function (c) { return c.id; }), types: ["qcm", "vf", "open", "ordre"], n: 15 }; }
+  function defaultCfg() { return { mode: "libre", ch: CHAPTERS.map(function (c) { return c.id; }), types: ["qcm"], n: 15 }; }
   var TYPE_LABEL = { qcm: "QCM", vf: "Vrai / faux", open: "Réponse à écrire", ordre: "Remettre dans l'ordre" };
 
   function buildSession(cfg) {
     var list, timed = false, exam = false;
-    if (cfg.mode === "prof") list = shuffle(QUESTIONS.filter(function (q) { return q.src === "prof"; }));
+    if (cfg.mode === "prof" || cfg.mode === "25qcm") list = shuffle(QUESTIONS.filter(function (q) { return q.src === cfg.mode; }));
     else if (cfg.mode === "err") list = shuffle(errorList());
     else if (cfg.mode === "exam") {
       exam = true; timed = true;
-      var pool = QUESTIONS.filter(function (q) { return q.t === "qcm" || q.t === "vf"; });
+      var pool = QUESTIONS.filter(function (q) { return q.t === "qcm"; });
       var prof = shuffle(pool.filter(function (q) { return q.src === "prof"; })).slice(0, 6);
       var rest = pool.filter(function (q) { return q.src !== "prof"; });
       var picked = [];
@@ -166,9 +170,9 @@
   function renderSetup() {
     var cfg = Object.assign(defaultCfg(), S.cfg || {});
     var nErr = errorList().length;
-    var modes = [["libre", "Entraînement libre", "Tu choisis chapitres et types"], ["prof", "QCM du prof", "Les questions de la préparation"], ["exam", "Devoir blanc", "20 QCM chronométrés"], ["err", "Questions à revoir", nErr ? plural(nErr, "question") + " ratée" + (nErr > 1 ? "s" : "") : "Rien à revoir"]];
+    var modes = [["libre", "Entraînement libre", "Tu choisis chapitres et types"], ["prof", "QCM du prof", "Les questions de la préparation"], ["25qcm", "Série « 25 QCM »", "Le document, tel quel"], ["exam", "Devoir blanc", "20 QCM chronométrés"], ["err", "Questions à revoir", nErr ? plural(nErr, "question") + " ratée" + (nErr > 1 ? "s" : "") : "Rien à revoir"]];
     function count() {
-      if (cfg.mode === "prof") return QUESTIONS.filter(function (q) { return q.src === "prof"; }).length;
+      if (cfg.mode === "prof" || cfg.mode === "25qcm") return QUESTIONS.filter(function (q) { return q.src === cfg.mode; }).length;
       if (cfg.mode === "err") return nErr;
       if (cfg.mode === "exam") return 20;
       var n = QUESTIONS.filter(function (q) { return cfg.ch.indexOf(q.ch) >= 0 && cfg.types.indexOf(q.t) >= 0; }).length;
@@ -179,9 +183,9 @@
       app.innerHTML = '<div class="view"><div><h1>S\'entraîner</h1><p class="muted" style="margin-top:8px">Choisis un mode puis lance la série. Les questions déjà réussies passent après les autres.</p></div>' +
         '<div class="panel setup"><fieldset><legend>Mode</legend><div class="mode-pick">' + modes.map(function (m) { return '<button data-mode="' + m[0] + '" aria-pressed="' + (cfg.mode === m[0]) + '"><b>' + m[1] + "</b><span>" + m[2] + "</span></button>"; }).join("") + "</div></fieldset>" +
         (lib ? '<fieldset><legend>Chapitres</legend><div class="row">' + CHAPTERS.map(function (c) { return '<button class="chip" data-ch="' + c.id + '" aria-pressed="' + (cfg.ch.indexOf(c.id) >= 0) + '">' + c.n + ". " + esc(c.short) + "</button>"; }).join("") + "</div></fieldset>" +
-          '<fieldset><legend>Types de questions</legend><div class="row">' + Object.keys(TYPE_LABEL).map(function (t) { var n = QUESTIONS.filter(function (q) { return q.t === t; }).length; return '<button class="chip" data-ty="' + t + '" aria-pressed="' + (cfg.types.indexOf(t) >= 0) + '">' + TYPE_LABEL[t] + " (" + n + ")</button>"; }).join("") + "</div></fieldset>" +
+          '<fieldset><legend>Types de questions</legend><p class="muted small" style="margin:-4px 0 6px">Le devoir est 100 % QCM. Les autres formats sont un bonus pour mieux retenir.</p><div class="row">' + Object.keys(TYPE_LABEL).map(function (t) { var n = QUESTIONS.filter(function (q) { return q.t === t; }).length; return '<button class="chip" data-ty="' + t + '" aria-pressed="' + (cfg.types.indexOf(t) >= 0) + '">' + TYPE_LABEL[t] + " (" + n + ")</button>"; }).join("") + "</div></fieldset>" +
           '<fieldset><legend>Nombre de questions</legend><div class="row">' + [10, 15, 30, "all"].map(function (n) { return '<button class="chip" data-n="' + n + '" aria-pressed="' + (cfg.n === n) + '">' + (n === "all" ? "Toutes" : n) + "</button>"; }).join("") + "</div></fieldset>" : "") +
-        (cfg.mode === "exam" ? '<p class="note note-info"><b>Comme le jour J :</b> 20 questions (QCM et vrai/faux), 20 minutes, tu peux revenir en arrière, la correction s\'affiche quand tu rends ta copie.</p>' : "") +
+        (cfg.mode === "exam" ? '<p class="note note-info"><b>Comme le jour J :</b> 20 QCM, 20 minutes, tu peux revenir en arrière, la correction s\'affiche quand tu rends ta copie.</p>' : "") +
         '<div class="row" style="justify-content:space-between"><span class="muted">' + plural(count(), "question") + '</span><button class="btn btn-gold" id="go"' + (count() ? "" : " disabled") + ">Commencer</button></div></div></div>";
       $$("[data-mode]", app).forEach(function (b) { b.onclick = function () { cfg.mode = b.dataset.mode; draw(); }; });
       $$("[data-ch]", app).forEach(function (b) { b.onclick = function () { var id = b.dataset.ch, k = cfg.ch.indexOf(id); if (k >= 0) { if (cfg.ch.length > 1) cfg.ch.splice(k, 1); } else cfg.ch.push(id); draw(); }; });
@@ -635,8 +639,8 @@
       [["Démarche", "Quel avenir veut-on ?", "Comment gérer au quotidien ?"], ["Objectif", "Pérennité et développement", "Optimiser l'utilisation des ressources"], ["Vision", "Externe : opportunités et menaces", "Interne : ressources à organiser"], ["Horizon", "Long terme (plus de 3 ans)", "Court et moyen terme"], ["Acteurs", "Direction générale", "Hiérarchie intermédiaire (chefs de service)"], ["Nature des décisions", "Domaines d'activité, marchés, structures", "RH, finances, commercial, production"], ["Caractère", "Non réversibles", "Réversibles si nécessaire"], ["Exemples", "Nouvelle activité, rachat d'un concurrent, changement de structure", "Embauche, fixation des prix, promotion"]].map(function (r) { return "<tr><td><b>" + r[0] + "</b></td><td>" + r[1] + "</td><td>" + r[2] + "</td></tr>"; }).join("") + "</tbody></table></div></section>" +
       '<section class="stack"><h2>Les 4 contextes économiques</h2><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Économie</th><th>Offre / demande</th><th>Qui domine ?</th><th>Raisonnement</th><th>FCS</th></tr></thead><tbody>' +
       [["Production", "O < D", "Le producteur (experts techniques)", "Amont → aval", "Capacité, standardisation, productivité"], ["Distribution", "O = D", "Le distributeur (commerciaux)", "Amont → aval", "Réseau, force de vente, promotion"], ["Marché", "O > D", "Le consommateur", "Aval → amont", "Open innovation, R&D, marketing"], ["Environnement", "O > D + PESTEL", "Toutes les fonctions", "Aval et transversal → amont", "Stratégie, prospective, agilité, communication"]].map(function (r) { return "<tr>" + r.map(function (x, i) { return "<td>" + (i ? x : "<b>" + x + "</b>") + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div></section>" +
-      '<section class="panel stack"><h2>Erreurs corrigées dans « 25 QCM corrigés »</h2><p class="muted">Ce document contient des corrigés faux. Si une de ces questions tombe, voici la bonne réponse.</p>' +
-      fixes.map(function (q) { return '<div class="rev ok"><div class="q">' + esc(q.q) + '</div><div class="a"><b>Bonne réponse :</b> ' + esc(q.o[q.a]) + '</div><div class="fix">' + esc(q.fix) + "</div></div>"; }).join("") + "</section>" +
+      '<section class="panel stack"><h2>Points d\'attention dans « 25 QCM corrigés »</h2><p class="muted">Les questions sont reprises telles quelles, avec la réponse du corrigé officiel. Pour celles-ci, le corrigé ne colle pas parfaitement au cours.</p>' +
+      fixes.map(function (q) { return '<div class="rev ok"><div class="q">' + esc(q.q) + '</div><div class="a"><b>Réponse du corrigé :</b> ' + esc(q.o[q.a]) + '</div><div class="fix">' + esc(q.fix) + "</div></div>"; }).join("") + "</section>" +
       '<section class="panel stack"><h2>Ta progression</h2><p class="muted">Tes résultats sont enregistrés uniquement dans ce navigateur.</p><div id="resetBox"><button class="btn btn-ghost" id="reset">Effacer ma progression</button></div></section></div>';
     $("#reset", app).onclick = function () {
       var box = $("#resetBox", app);
