@@ -1,0 +1,16 @@
+{
+  "name": "Révis'Manag — Management des entreprises",
+  "short_name": "Révis'Manag",
+  "description": "QCM, définitions et cas pratiques du cours Management des entreprises (IBAM M1).",
+  "lang": "fr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f1e8",
+  "theme_color": "#12322e",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
