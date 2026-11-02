@@ -26,6 +26,7 @@
     prev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
     next: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
     sound: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>',
+    stop: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
     mute: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="m17 9 5 6M22 9l-5 6"/></svg>',
     moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5z"/></svg>',
     sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
@@ -72,9 +73,39 @@
   var nav = document.getElementById("nav");
   nav.innerHTML = NAV.map(function (n) { return '<a href="#' + n[0] + '" data-v="' + n[0] + '">' + n[2] + "<span>" + n[1] + "</span></a>"; }).join("");
 
+  /* ---------------- écoute (lecteur dans reader.js) ---------------- */
+  var RD = window.Reader || { supported: false, owner: function () { return null; }, stop: function () { }, play: function () { }, blocks: function () { return []; }, speedHTML: function () { return ""; } };
+  var LISTEN = {}; // zone -> fonction qui lance sa lecture
+  function listenBtn(owner, label) {
+    if (!RD.supported) return "";
+    return '<span class="listen"><button type="button" class="btn btn-ghost listen-btn" data-listen="' + owner + '" data-label="' + esc(label) + '" aria-pressed="false">' + ICON.sound + "<span>" + esc(label) + "</span></button>" + RD.speedHTML() + "</span>";
+  }
+  function listenIcon(owner, label) {
+    if (!RD.supported) return "";
+    return '<button type="button" class="icon-btn listen-ic" data-listen="' + owner + '" data-label="' + esc(label) + '" aria-pressed="false" aria-label="' + esc(label) + '">' + ICON.sound + "</button>";
+  }
+  function syncListen() {
+    var who = RD.owner();
+    $$("[data-listen]").forEach(function (b) {
+      var on = who === b.dataset.listen;
+      if (b.getAttribute("aria-pressed") === String(on) && b.dataset.done) return;
+      b.dataset.done = "1"; b.setAttribute("aria-pressed", String(on));
+      if (b.classList.contains("listen-ic")) { b.innerHTML = on ? ICON.stop : ICON.sound; b.setAttribute("aria-label", on ? "Arrêter la lecture" : b.dataset.label); }
+      else b.innerHTML = (on ? ICON.stop : ICON.sound) + "<span>" + (on ? "Arrêter" : esc(b.dataset.label)) + "</span>";
+    });
+  }
+  function toggleListen(owner, start) { if (RD.owner() === owner) RD.stop(); else if (start) start(); }
+  document.addEventListener("reader:change", syncListen);
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-listen]"); if (!b) return;
+    e.preventDefault(); toggleListen(b.dataset.listen, LISTEN[b.dataset.listen]);
+  });
+  function readZone(owner, root, opts) { if (root) RD.play(RD.blocks(root), Object.assign({ owner: owner }, opts || {})); }
+
   var cleanup = null;
   function route() {
     if (cleanup) { try { cleanup(); } catch (e) { } cleanup = null; }
+    RD.stop(); LISTEN = {};
     var h = (location.hash || "#accueil").slice(1) || "accueil";
     var base = h.indexOf("cas-") === 0 ? "cas" : h;
     $$("a", nav).forEach(function (a) { if (a.dataset.v === base) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
@@ -85,6 +116,7 @@
     else if (h.indexOf("cas-") === 0) renderCase(h.slice(4));
     else if (h === "memo") renderMemo();
     else renderHome();
+    syncListen();
   }
   window.addEventListener("hashchange", route);
   function go(h) { if (location.hash === "#" + h) route(); else location.hash = h; }
@@ -197,7 +229,9 @@
   }
 
   var timerId = null;
+  var AUTO = false; try { AUTO = localStorage.getItem(KEY + "-auto") === "1"; } catch (e) { }
   function renderRunner() {
+    if (RD.owner() === "q") RD.stop();
     var it = QS.items[QS.i], q = it.q, n = QS.items.length;
     var badges = '<span class="pill">' + CH[q.ch].n + ". " + esc(CH[q.ch].short) + "</span>" + '<span class="pill" style="background:var(--surface-2)">' + TYPE_LABEL[q.t] + "</span>" +
       (q.src === "prof" ? '<span class="pill pill-prof">QCM du prof</span>' : "") + (q.src === "25qcm" ? '<span class="pill pill-hors">Série 25 QCM</span>' : "");
@@ -219,11 +253,24 @@
     } else {
       actions = '<div class="qactions"><span class="kbd-hint">Raccourcis : A–D ou 1–4 pour choisir, Entrée pour valider</span>' + (it.graded ? '<button class="btn" id="next">' + (QS.i < n - 1 ? "Question suivante" : "Voir mon score") + ICON.next + "</button>" : '<button class="btn" id="check">Valider</button>') + "</div>";
     }
-    app.innerHTML = '<div class="view">' + head + '<article class="qcard"><div class="qmeta">' + badges + '</div><p class="qtext">' + esc(q.q) + "</p>" +
+    var tools = RD.supported ? '<div class="qtools"><button type="button" class="chip" id="autoRead" aria-pressed="' + AUTO + '">' + ICON.sound + "Auto</button>" + RD.speedHTML() + "</div>" : "";
+    app.innerHTML = '<div class="view">' + head + tools + '<article class="qcard"><div class="qmeta">' + badges + '<span class="qmeta-end">' + listenIcon("q", "Écouter la question") + '</span></div><p class="qtext">' + esc(q.q) + "</p>" +
       (q.t === "qcm" && /SAUF|N'EST PAS|NE fait PAS|N'EST PAS/i.test(q.q) ? '<p class="qhint">Attention : question négative, on cherche l\'intrus.</p>' : "") +
       body + '<div id="fb"></div>' + actions + "</article></div>";
     if (it.graded && !QS.exam) showFeedback(it);
     bindRunner(it);
+    LISTEN.q = function () { readZone("q", $(".qcard", app)); };
+    var ar = $("#autoRead", app);
+    if (ar) ar.onclick = function () {
+      AUTO = !AUTO; ar.setAttribute("aria-pressed", String(AUTO)); try { localStorage.setItem(KEY + "-auto", AUTO ? "1" : "0"); } catch (e) { }
+      if (AUTO) LISTEN.q(); else if (RD.owner() === "q") RD.stop();
+    };
+    if (AUTO) {
+      if (QS.justGraded) readZone("q", $("#fb", app));
+      else if (!it.graded || QS.exam) LISTEN.q();
+    }
+    QS.justGraded = false;
+    syncListen();
     if (QS.timed) startTimer();
     var ta = $("#ans", app); if (ta && !it.graded) ta.focus();
   }
@@ -284,6 +331,7 @@
       return;
     }
     it.graded = true; it.correct = isCorrect(it); rec(it.q, it.correct);
+    QS.justGraded = true;
     renderRunner();
   }
   function showFeedback(it) {
@@ -394,20 +442,49 @@
   function renderFiches() {
     if (!F.deck) buildDeck();
     var head = '<div class="view"><div class="section-h"><div><h1>Fiches de définitions</h1><p class="muted" style="margin-top:8px">Des définitions courtes, avec une astuce pour chacune.</p></div>' +
-      '<div class="seg" role="group" aria-label="Affichage"><button data-m="cards" aria-pressed="' + (F.mode === "cards") + '">Cartes</button><button data-m="list" aria-pressed="' + (F.mode === "list") + '">Liste</button></div></div>' +
+      '<div class="row">' + listenBtn("fiches", "Écouter") + '<div class="seg" role="group" aria-label="Affichage"><button data-m="cards" aria-pressed="' + (F.mode === "cards") + '">Cartes</button><button data-m="list" aria-pressed="' + (F.mode === "list") + '">Liste</button></div></div></div>' +
       '<div class="row"><button class="chip" data-c="all" aria-pressed="' + (F.ch === "all") + '">Tout</button>' + CHAPTERS.map(function (c) { return '<button class="chip" data-c="' + c.id + '" aria-pressed="' + (F.ch === c.id) + '">' + c.n + ". " + esc(c.short) + "</button>"; }).join("") + "</div>";
     if (F.mode === "cards") app.innerHTML = head + cardsHTML() + "</div>"; else app.innerHTML = head + listHTML() + "</div>";
-    $$("[data-m]", app).forEach(function (b) { b.onclick = function () { F.mode = b.dataset.m; renderFiches(); }; });
-    $$("[data-c]", app).forEach(function (b) { b.onclick = function () { F.ch = b.dataset.c; buildDeck(); renderFiches(); }; });
+    $$("[data-m]", app).forEach(function (b) { b.onclick = function () { stopFiches(); F.mode = b.dataset.m; renderFiches(); }; });
+    $$("[data-c]", app).forEach(function (b) { b.onclick = function () { stopFiches(); F.ch = b.dataset.c; buildDeck(); renderFiches(); }; });
     if (F.mode === "cards") bindCards(); else bindList();
+    LISTEN.fiches = startFiches;
+    syncListen();
+  }
+  function stopFiches() { if (RD.owner() === "fiches") RD.stop(); }
+  // Carte : le terme, 2 s pour réciter, on retourne la carte, puis la réponse (sans relire le terme)
+  function cardItems(w) {
+    var it = [$(".face.front .term", w), { el: $(".face.back .def", w), pause: 2000, before: function () { var fl = $(".flash", w); if (fl) fl.classList.add("flipped"); F.flipped = true; } }];
+    var m = $(".face.back .memo", w); if (m) it.push(m);
+    return it;
+  }
+  function startFiches() {
+    if (F.mode === "cards") {
+      var w = $(".flash-wrap", app); if (!w) return;
+      RD.play(cardItems(w), {
+        owner: "fiches", chain: function () {
+          if (F.i + 1 >= F.deck.length) return null;
+          var k = F.i + 1, box = document.createElement("div"); box.innerHTML = flashHTML(FICHES[F.deck[k]], false);
+          var nw = box.firstElementChild;
+          return { items: cardItems(nw), enter: function () { F.i = k; F.flipped = false; renderFiches(); var old = $(".flash-wrap", app); if (old) old.replaceWith(nw); bindCards(); } };
+        }
+      });
+    } else {
+      var bl = RD.blocks($("#gloss", app)), k0 = 0;
+      for (var i = 0; i < bl.length; i++) if (bl[i].getBoundingClientRect().bottom > 90) { k0 = i; break; }
+      RD.play(bl.slice(k0), { owner: "fiches" });
+    }
+  }
+  function flashHTML(f, flipped) {
+    return '<div class="flash-wrap"><button class="flash' + (flipped ? " flipped" : "") + '" id="flash" aria-label="Retourner la carte"><div class="face front"><span class="pill" style="align-self:flex-start">' + CH[f.ch].n + ". " + esc(CH[f.ch].short) + (f.hors ? " · tombé au QCM" : "") + '</span><div class="term">' + esc(f.term) + '</div><div class="tap">Essaie de réciter la définition, puis touche la carte pour vérifier.</div></div>' +
+      '<div class="face back"><h3>' + esc(f.term) + '</h3><p class="def">' + esc(f.def) + "</p>" + (f.memo ? '<div class="memo"><b>Astuce :</b> ' + esc(f.memo) + "</div>" : "") + "</div></button></div>";
   }
   function cardsHTML() {
     var d = F.deck;
     if (!d.length) return '<div class="empty">Aucune fiche.</div>';
     var f = FICHES[d[F.i]];
     return '<div class="row" style="justify-content:space-between"><span class="qcount">Carte ' + (F.i + 1) + " / " + d.length + '</span></div><div class="qbar"><i style="width:' + ((F.i + 1) / d.length * 100) + '%"></i></div>' +
-      '<div class="flash-wrap"><button class="flash' + (F.flipped ? " flipped" : "") + '" id="flash" aria-label="Retourner la carte"><div class="face front"><span class="pill" style="align-self:flex-start">' + CH[f.ch].n + ". " + esc(CH[f.ch].short) + (f.hors ? " · tombé au QCM" : "") + '</span><div class="term">' + esc(f.term) + '</div><div class="tap">Essaie de réciter la définition, puis touche la carte pour vérifier.</div></div>' +
-      '<div class="face back"><h3>' + esc(f.term) + '</h3><p class="def">' + esc(f.def) + "</p>" + (f.memo ? '<div class="memo"><b>Astuce :</b> ' + esc(f.memo) + "</div>" : "") + "</div></button></div>" +
+      flashHTML(f, F.flipped) +
       '<div class="flash-ctl"><button class="btn btn-ghost" id="prevCard"' + (F.i ? "" : " disabled") + ">" + ICON.prev + 'Précédente</button><button class="btn" id="nextCard"' + (F.i < d.length - 1 ? "" : " disabled") + ">Suivante" + ICON.next + "</button></div>";
   }
   function sizeFlash() {
@@ -419,14 +496,21 @@
     sizeFlash();
     var fl = $("#flash", app);
     if (fl) fl.onclick = function () { F.flipped = !F.flipped; fl.classList.toggle("flipped", F.flipped); };
-    function moveTo(i) { if (i < 0 || i >= F.deck.length) return; F.i = i; F.flipped = false; renderFiches(); }
     var pv = $("#prevCard", app), nx = $("#nextCard", app);
-    if (pv) pv.onclick = function () { moveTo(F.i - 1); };
-    if (nx) nx.onclick = function () { moveTo(F.i + 1); };
-    var onKey = function (e) { if (location.hash !== "#fiches" || F.mode !== "cards") return; if (e.key === " ") { e.preventDefault(); if (fl) fl.click(); } else if (e.key === "ArrowRight") moveTo(F.i + 1); else if (e.key === "ArrowLeft") moveTo(F.i - 1); };
-    document.addEventListener("keydown", onKey);
-    window.addEventListener("resize", sizeFlash);
-    cleanup = function () { document.removeEventListener("keydown", onKey); window.removeEventListener("resize", sizeFlash); };
+    if (pv) pv.onclick = function () { moveCard(F.i - 1); };
+    if (nx) nx.onclick = function () { moveCard(F.i + 1); };
+    if (F.onKey) document.removeEventListener("keydown", F.onKey);
+    F.onKey = function (e) { if (location.hash !== "#fiches" || F.mode !== "cards") return; if (e.key === " ") { e.preventDefault(); var f2 = $("#flash", app); if (f2) f2.click(); } else if (e.key === "ArrowRight") moveCard(F.i + 1); else if (e.key === "ArrowLeft") moveCard(F.i - 1); };
+    document.addEventListener("keydown", F.onKey);
+    window.removeEventListener("resize", sizeFlash); window.addEventListener("resize", sizeFlash);
+    cleanup = function () { document.removeEventListener("keydown", F.onKey); F.onKey = null; window.removeEventListener("resize", sizeFlash); };
+  }
+  // Changer de carte pendant l'écoute relance la lecture depuis la nouvelle carte
+  function moveCard(i) {
+    if (i < 0 || i >= F.deck.length) return;
+    var was = RD.owner() === "fiches"; if (was) RD.stop();
+    F.i = i; F.flipped = false; renderFiches();
+    if (was) startFiches();
   }
   function hl(text, q) {
     var t = esc(text); if (!q) return t;
@@ -447,27 +531,22 @@
   }
   function bindList() {
     var s = $("#search", app);
-    s.oninput = function () { F.q = s.value; var g = document.createElement("div"); g.innerHTML = listHTML(); $("#gloss", app).replaceWith($("#gloss", g)); };
+    s.oninput = function () { stopFiches(); F.q = s.value; var g = document.createElement("div"); g.innerHTML = listHTML(); $("#gloss", app).replaceWith($("#gloss", g)); };
   }
 
   /* =========================================================
      CAS PRATIQUES
      ========================================================= */
   function renderCases() {
-    app.innerHTML = '<div class="view"><div><h1>Cas pratiques</h1><p class="muted" style="margin-top:8px;max-width:62ch">Chaque cas commence par une explication pas à pas (lecture automatique et voix possibles), puis un exercice corrigé comme au devoir.</p></div>' +
+    app.innerHTML = '<div class="view"><div><h1>Cas pratiques</h1><p class="muted" style="margin-top:8px;max-width:62ch">Chaque cas commence par une explication pas à pas (à lire ou à écouter), puis un exercice corrigé comme au devoir.</p></div>' +
       '<div class="cases">' + CASES.map(function (c, i) {
         var st = S.cases[c.id]; var s = st && st.best != null ? '<span class="status done">Exercice : ' + st.best + " %</span>" : st && st.seen ? '<span class="status">Explication vue</span>' : '<span class="status">À découvrir</span>';
         return '<a class="case" href="#cas-' + c.id + '"><span class="pill">' + esc(c.tag) + "</span><b>" + esc(c.title) + "</b><p>" + esc(c.summary) + '</p><div class="row">' + s + '<span class="muted small">' + plural(c.steps.length, "étape") + "</span></div></a>";
       }).join("") + "</div></div>";
   }
 
-  var P = { id: null, i: 0, playing: false, voice: false, timer: null, raf: null, t0: 0, dur: 0, tab: "learn", exo: null };
-  var synth = window.speechSynthesis || null, frVoice = null;
-  function pickVoice() { if (!synth) return; var v = synth.getVoices(); frVoice = v.filter(function (x) { return /^fr/i.test(x.lang); }).sort(function (a, b) { return (b.lang === "fr-FR") - (a.lang === "fr-FR"); })[0] || null; }
-  if (synth) { pickVoice(); try { synth.onvoiceschanged = pickVoice; } catch (e) { } }
-  try { P.voice = localStorage.getItem(KEY + "-voice") === "1"; } catch (e) { }
-
-  function stopPlayer() { P.playing = false; if (P.timer) clearTimeout(P.timer); if (P.raf) cancelAnimationFrame(P.raf); P.timer = P.raf = null; if (synth) try { synth.cancel(); } catch (e) { } }
+  var P = { id: null, i: 0, tab: "learn", exo: null };
+  function stopPlayer() { if (RD.owner()) RD.stop(); }
 
   function renderCase(id) {
     var c = CASES.filter(function (x) { return x.id === id; })[0];
@@ -480,37 +559,38 @@
     cleanup = function () { stopPlayer(); };
   }
 
-  function stepText(st) { var d = document.createElement("div"); d.innerHTML = st.html; return st.t + ". " + d.textContent.replace(/\s+/g, " ").trim(); }
-  function renderPlayer(c) {
-    var body = $("#caseBody", app), st = c.steps[P.i], n = c.steps.length, last = P.i === n - 1;
-    body.innerHTML = '<div class="player"><div class="segs">' + c.steps.map(function (_, k) { return '<button data-s="' + k + '" class="' + (k < P.i ? "past" : "") + '" aria-label="Étape ' + (k + 1) + '"><i></i></button>'; }).join("") + "</div>" +
-      '<div class="stage" aria-live="polite"><span class="st-n">Étape ' + (P.i + 1) + " sur " + n + "</span><h2>" + esc(st.t) + "</h2>" + st.html +
-      (last ? '<div class="rv"><button class="btn btn-gold" id="toExo">Passer à l\'exercice' + ICON.next + "</button></div>" : "") + "</div>" +
-      '<div class="ctl"><div class="row"><button class="icon-btn" id="pPrev" aria-label="Étape précédente"' + (P.i ? "" : " disabled") + ">" + ICON.prev + '</button><button class="play" id="pPlay" aria-label="' + (P.playing ? "Mettre en pause" : "Lecture automatique") + '">' + (P.playing ? ICON.pause : ICON.play) + '</button><button class="icon-btn" id="pNext" aria-label="Étape suivante"' + (last ? " disabled" : "") + ">" + ICON.next + "</button></div>" +
-      (synth ? '<button class="btn btn-ghost" id="pVoice" aria-pressed="' + P.voice + '">' + (P.voice ? ICON.sound + "Voix activée" : ICON.mute + "Voix coupée") + "</button>" : "") + "</div></div>";
-    $$(".stage .rv", body).forEach(function (el, k) { el.style.animationDelay = (k * 0.35) + "s"; });
-    $$("[data-s]", body).forEach(function (b) { b.onclick = function () { var keep = P.playing; stopPlayer(); P.i = +b.dataset.s; P.playing = keep; renderPlayer(c); if (keep) runStep(c); }; });
-    $("#pPrev", body).onclick = function () { var keep = P.playing; stopPlayer(); P.i = Math.max(0, P.i - 1); P.playing = keep; renderPlayer(c); if (keep) runStep(c); };
-    $("#pNext", body).onclick = function () { var keep = P.playing; stopPlayer(); P.i = Math.min(n - 1, P.i + 1); P.playing = keep; renderPlayer(c); if (keep) runStep(c); };
-    $("#pPlay", body).onclick = function () { if (P.playing) { stopPlayer(); renderPlayer(c); } else { if (last) P.i = 0; P.playing = true; renderPlayer(c); runStep(c); } };
-    var v = $("#pVoice", body); if (v) v.onclick = function () { P.voice = !P.voice; try { localStorage.setItem(KEY + "-voice", P.voice ? "1" : "0"); } catch (e) { } var keep = P.playing; stopPlayer(); P.playing = keep; renderPlayer(c); if (keep) runStep(c); };
-    var te = $("#toExo", body); if (te) te.onclick = function () { stopPlayer(); P.tab = "exo"; renderCase(c.id); window.scrollTo(0, 0); };
+  function stageNode(c, i) {
+    var st = c.steps[i], d = document.createElement("div");
+    d.className = "stage"; d.setAttribute("aria-live", "polite");
+    d.innerHTML = '<span class="st-n">Étape ' + (i + 1) + " sur " + c.steps.length + "</span><h2>" + esc(st.t) + "</h2>" + st.html +
+      (i === c.steps.length - 1 ? '<div class="rv"><button class="btn btn-gold" id="toExo">Passer à l\'exercice' + ICON.next + "</button></div>" : "");
+    $$(".rv", d).forEach(function (el, k) { el.style.animationDelay = (k * 0.35) + "s"; });
+    return d;
   }
-  function runStep(c) {
-    var st = c.steps[P.i], txt = stepText(st), words = txt.split(" ").length;
-    P.dur = Math.max(7000, words * 430); P.t0 = performance.now();
-    var seg = $$(".segs button", app)[P.i]; var bar = seg && $("i", seg);
-    var advance = function () { if (!P.playing) return; if (P.i < c.steps.length - 1) { P.i++; renderPlayer(c); runStep(c); } else { P.playing = false; renderPlayer(c); } };
-    var frame = function (t) { if (!P.playing) return; var p = Math.min(0.99, (t - P.t0) / P.dur); if (bar) bar.style.width = (p * 100) + "%"; P.raf = requestAnimationFrame(frame); };
-    P.raf = requestAnimationFrame(frame);
-    if (P.voice && synth) {
-      try {
-        synth.cancel(); var u = new SpeechSynthesisUtterance(txt); u.lang = "fr-FR"; if (frVoice) u.voice = frVoice; u.rate = 1;
-        u.onend = function () { if (P.playing) P.timer = setTimeout(advance, 700); };
-        u.onerror = function () { if (P.playing) P.timer = setTimeout(advance, P.dur); };
-        synth.speak(u);
-      } catch (e) { P.timer = setTimeout(advance, P.dur); }
-    } else P.timer = setTimeout(advance, P.dur);
+  function renderPlayer(c, stage) {
+    var body = $("#caseBody", app), n = c.steps.length, last = P.i === n - 1;
+    body.innerHTML = '<div class="player"><div class="segs">' + c.steps.map(function (_, k) { return '<button data-s="' + k + '" class="' + (k <= P.i ? "past" : "") + '" aria-label="Étape ' + (k + 1) + '"><i></i></button>'; }).join("") + '</div><div id="stageSlot"></div>' +
+      '<div class="ctl"><div class="row"><button class="icon-btn" id="pPrev" aria-label="Étape précédente"' + (P.i ? "" : " disabled") + ">" + ICON.prev + '</button><button class="icon-btn" id="pNext" aria-label="Étape suivante"' + (last ? " disabled" : "") + ">" + ICON.next + "</button></div>" +
+      listenBtn("steps", "Écouter les étapes") + "</div></div>";
+    $("#stageSlot", body).replaceWith(stage || stageNode(c, P.i));
+    // Cliquer sur une autre étape pendant l'écoute relance la lecture depuis celle-ci
+    var goStep = function (k) { if (k < 0 || k >= n) return; var was = RD.owner() === "steps"; if (was) RD.stop(); P.i = k; renderPlayer(c); if (was) listenSteps(c); };
+    $$("[data-s]", body).forEach(function (b) { b.onclick = function () { goStep(+b.dataset.s); }; });
+    $("#pPrev", body).onclick = function () { goStep(P.i - 1); };
+    $("#pNext", body).onclick = function () { goStep(P.i + 1); };
+    var te = $("#toExo", body); if (te) te.onclick = function () { stopPlayer(); P.tab = "exo"; renderCase(c.id); window.scrollTo(0, 0); };
+    LISTEN.steps = function () { listenSteps(c); };
+    syncListen();
+  }
+  // Toutes les étapes à la suite : l'étape suivante est préparée hors de la page et mise en file d'avance
+  function listenSteps(c) {
+    RD.play(RD.blocks($(".stage", app)), {
+      owner: "steps", chain: function () {
+        if (P.i + 1 >= c.steps.length) return null;
+        var k = P.i + 1, el = stageNode(c, k);
+        return { items: RD.blocks(el), enter: function () { P.i = k; renderPlayer(c, el); } };
+      }
+    });
   }
 
   /* ---------- exercices ---------- */
@@ -540,12 +620,13 @@
     return { ok: ok, tot: tot, p: tot ? Math.round(ok / tot * 100) : 0 };
   }
   function renderExo(c) {
+    if (RD.owner()) RD.stop();
     if (!P.exo) P.exo = newExo(c);
     var E = P.exo, g = E.graded, body = $("#caseBody", app);
-    var h = '<div class="panel stack">' + c.exo.context + "</div>";
+    var h = '<div class="panel stack" id="exoCtx"><div class="row" style="justify-content:space-between"><b>Le contexte</b>' + listenIcon("ctx", "Écouter le contexte") + "</div>" + c.exo.context + "</div>";
     c.exo.parts.forEach(function (p, pi) {
       var st = E.parts[pi];
-      h += '<section class="exo-part"><h3><span>' + (pi + 1) + ".</span>" + esc(p.prompt) + "</h3>";
+      h += '<section class="exo-part" id="exo' + pi + '"><h3><span>' + (pi + 1) + ".</span>" + esc(p.prompt) + '<span class="h-end">' + listenIcon("exo-" + pi, "Écouter cette question") + "</span></h3>";
       if (p.kind === "choose") {
         h += p.rows.map(function (r, ri) {
           var cls = g ? (st.sel[ri] === r[1] ? " ok" : " ko") : "";
@@ -596,6 +677,9 @@
       E.graded = true; var s = exoScore(c, E); var cs = S.cases[c.id] || {}; cs.best = Math.max(cs.best || 0, s.p); S.cases[c.id] = cs; save();
       renderExo(c); toast("Note : " + s.ok + " / " + s.tot);
     };
+    LISTEN.ctx = function () { readZone("ctx", $("#exoCtx", app)); };
+    c.exo.parts.forEach(function (_, pi) { LISTEN["exo-" + pi] = function () { readZone("exo-" + pi, $("#exo" + pi, app)); }; });
+    syncListen();
     var rd = $("#exoRedo", body); if (rd) rd.onclick = function () { P.exo = newExo(c); renderExo(c); window.scrollTo(0, 0); };
   }
 
@@ -642,6 +726,12 @@
       '<section class="panel stack"><h2>Points d\'attention dans « 25 QCM corrigés »</h2><p class="muted">Les questions sont reprises telles quelles, avec la réponse du corrigé officiel. Pour celles-ci, le corrigé ne colle pas parfaitement au cours.</p>' +
       fixes.map(function (q) { return '<div class="rev ok"><div class="q">' + esc(q.q) + '</div><div class="a"><b>Réponse du corrigé :</b> ' + esc(q.o[q.a]) + '</div><div class="fix">' + esc(q.fix) + "</div></div>"; }).join("") + "</section>" +
       '<section class="panel stack"><h2>Ta progression</h2><p class="muted">Tes résultats sont enregistrés uniquement dans ce navigateur.</p><div id="resetBox"><button class="btn btn-ghost" id="reset">Effacer ma progression</button></div></section></div>';
+    $$("section", app).forEach(function (sec, k) {
+      var h2 = $("h2", sec); if (!h2 || $("#reset", sec)) return;
+      h2.classList.add("has-listen"); h2.insertAdjacentHTML("beforeend", '<span class="h-end">' + listenIcon("memo-" + k, "Écouter cette partie") + "</span>");
+      LISTEN["memo-" + k] = function () { readZone("memo-" + k, sec); };
+    });
+    syncListen();
     $("#reset", app).onclick = function () {
       var box = $("#resetBox", app);
       box.innerHTML = '<div class="feedback ko"><div class="verdict">Tout effacer ?</div><div>Questions réussies, questions à revoir, notes des devoirs blancs et des cas seront supprimées.</div><div class="row"><button class="btn" id="resetYes">Oui, tout effacer</button><button class="btn btn-ghost" id="resetNo">Annuler</button></div></div>';
