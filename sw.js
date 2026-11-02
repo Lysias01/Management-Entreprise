@@ -1,5 +1,5 @@
 /* Cache hors connexion : le site fonctionne sans internet après la première visite. */
-var CACHE = "revis-manag-v3";
+var CACHE = "revis-manag-v4";
 var FILES = ["./", "index.html", "assets/style.css", "assets/app.js", "assets/data-fiches.js", "assets/data-questions.js", "assets/data-cases.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));

@@ -96,7 +96,6 @@
     var nProf = QUESTIONS.filter(function (q) { return q.src === "prof"; }).length;
     var nErr = errorList().length;
     var nMast = QUESTIONS.filter(mastered).length;
-    var nKnown = FICHES.filter(function (f, i) { return S.f[i] === 2; }).length;
     var nCases = CASES.filter(function (c) { return S.cases[c.id] && S.cases[c.id].best != null; }).length;
     var sample = [[1, 2], [2, 1], [3, 3], [4, 1], [5, 0]];
     var sheet = '<div class="sheet" aria-hidden="true"><h3>' + (last ? "Ton dernier devoir blanc" : "Exemple de copie") + "</h3>" +
@@ -111,10 +110,10 @@
       '<button class="mode feature" data-start="prof"><b>Les QCM du prof</b><span>Les ' + nProf + " questions de la préparation du devoir. À connaître par cœur.</span><span class='count'>" + nProf + " questions</span></button>" +
       '<button class="mode" data-start="exam"><b>Devoir blanc</b><span>20 questions, 20 minutes, correction à la fin, note sur 20.</span><span class="count">Conditions réelles</span></button>' +
       '<button class="mode" data-start="libre"><b>Entraînement libre</b><span>QCM, vrai/faux, réponses à écrire et remises en ordre, par chapitre.</span><span class="count">' + QUESTIONS.length + " questions</span></button>" +
-      '<button class="mode" data-start="err"' + (nErr ? "" : " disabled") + '><b>Mes erreurs</b><span>Les questions ratées reviennent jusqu\'à 2 bonnes réponses de suite.</span><span class="count">' + (nErr ? plural(nErr, "question") + " à revoir" : "Aucune erreur pour l'instant") + "</span></button>" +
+      '<button class="mode" data-start="err"' + (nErr ? "" : " disabled") + '><b>Questions à revoir</b><span>Chaque question ratée s\'ajoute ici toute seule. Elle en sort après 2 bonnes réponses de suite.</span><span class="count">' + (nErr ? plural(nErr, "question") + " à revoir" : "Rien à revoir pour l'instant") + "</span></button>" +
       "</div></section>" +
       '<section class="panel stack"><div class="section-h"><h2>Ta progression</h2><span class="muted small">Enregistrée sur cet appareil</span></div>' +
-      '<div class="stats"><div class="stat"><b>' + nMast + "/" + QUESTIONS.length + "</b><span>questions réussies</span></div><div class='stat'><b>" + nKnown + "/" + FICHES.length + "</b><span>définitions sues</span></div><div class='stat'><b>" + nCases + "/" + CASES.length + "</b><span>cas pratiques faits</span></div></div>" +
+      '<div class="stats"><div class="stat"><b>' + nMast + "/" + QUESTIONS.length + "</b><span>questions réussies</span></div><div class='stat'><b>" + nErr + "</b><span>questions à revoir</span></div><div class='stat'><b>" + nCases + "/" + CASES.length + "</b><span>cas pratiques faits</span></div></div>" +
       '<div class="progress-list">' + CHAPTERS.map(function (c) {
         var qs = QUESTIONS.filter(function (q) { return q.ch === c.id; }); var m = qs.filter(mastered).length; var p = qs.length ? Math.round(m / qs.length * 100) : 0;
         return '<div class="prog"><span class="num">' + c.n + '</span><div><div class="small"><b>' + esc(c.title) + '</b></div><div class="bar"><i style="width:' + p + '%"></i></div></div><span class="pct">' + p + " %</span></div>";
@@ -167,7 +166,7 @@
   function renderSetup() {
     var cfg = Object.assign(defaultCfg(), S.cfg || {});
     var nErr = errorList().length;
-    var modes = [["libre", "Entraînement libre", "Tu choisis chapitres et types"], ["prof", "QCM du prof", "Les questions de la préparation"], ["exam", "Devoir blanc", "20 QCM chronométrés"], ["err", "Mes erreurs", nErr ? plural(nErr, "question") : "Rien à revoir"]];
+    var modes = [["libre", "Entraînement libre", "Tu choisis chapitres et types"], ["prof", "QCM du prof", "Les questions de la préparation"], ["exam", "Devoir blanc", "20 QCM chronométrés"], ["err", "Questions à revoir", nErr ? plural(nErr, "question") + " ratée" + (nErr > 1 ? "s" : "") : "Rien à revoir"]];
     function count() {
       if (cfg.mode === "prof") return QUESTIONS.filter(function (q) { return q.src === "prof"; }).length;
       if (cfg.mode === "err") return nErr;
@@ -356,7 +355,7 @@
     var sorted = QS.items.slice().sort(function (a, b) { return (a.correct ? 1 : 0) - (b.correct ? 1 : 0); });
     var wrong = QS.items.filter(function (x) { return !x.correct; }).length;
     app.innerHTML = '<div class="view"><div class="panel result-top"><div class="score-ring" style="--p:' + p + '"><div><span><b>' + fmt(note20) + "</b><br>sur 20</span></div></div>" +
-      '<div class="stack" style="gap:10px"><h1 style="font-size:1.8rem">' + ok + " bonne" + (ok > 1 ? "s" : "") + " réponse" + (ok > 1 ? "s" : "") + " sur " + n + "</h1><p class='muted'>" + msg + '</p><div class="row">' +
+      '<div class="stack" style="gap:10px"><h1 style="font-size:1.8rem">' + ok + " bonne" + (ok > 1 ? "s" : "") + " réponse" + (ok > 1 ? "s" : "") + " sur " + n + "</h1><p class='muted'>" + msg + "</p>" + (wrong ? '<p class="note note-info"><b>' + plural(wrong, "question ratée", "questions ratées") + "</b> " + (wrong > 1 ? "ont été ajoutées" : "a été ajoutée") + ' à tes <a href="#quiz" id="toErr">questions à revoir</a>.</p>' : "") + '<div class="row">' +
       (wrong ? '<button class="btn btn-gold" id="redo">Refaire mes erreurs</button>' : "") + '<button class="btn btn-ghost" id="again">Nouvelle série</button></div></div></div>' +
       '<section class="stack"><h2>Correction</h2><div class="review">' + sorted.map(function (it) {
         var q = it.q;
@@ -366,6 +365,7 @@
       }).join("") + "</div></section></div>";
     var r = $("#redo", app); if (r) r.onclick = function () { var items = QS.items.filter(function (x) { return !x.correct; }).map(function (x) { return x.q; }); QS = sessionFrom(shuffle(items), "redo", false, false); renderRunner(); window.scrollTo(0, 0); };
     $("#again", app).onclick = function () { QS = null; renderSetup(); };
+    var te = $("#toErr", app); if (te) te.onclick = function (e) { e.preventDefault(); S.cfg = Object.assign(defaultCfg(), S.cfg || {}, { mode: "err" }); save(); QS = null; renderSetup(); window.scrollTo(0, 0); };
   }
 
   // Raccourcis clavier pendant un quiz
@@ -384,9 +384,8 @@
      ========================================================= */
   var F = { mode: "cards", ch: "all", i: 0, deck: null, flipped: false, q: "" };
   function buildDeck() {
-    var idx = FICHES.map(function (_, i) { return i; }).filter(function (i) { return F.ch === "all" || FICHES[i].ch === F.ch; });
-    var unk = shuffle(idx.filter(function (i) { return S.f[i] !== 2; })), known = shuffle(idx.filter(function (i) { return S.f[i] === 2; }));
-    F.deck = unk.concat(known); F.i = 0; F.flipped = false;
+    F.deck = FICHES.map(function (_, i) { return i; }).filter(function (i) { return F.ch === "all" || FICHES[i].ch === F.ch; });
+    F.i = 0; F.flipped = false;
   }
   function renderFiches() {
     if (!F.deck) buildDeck();
@@ -399,16 +398,13 @@
     if (F.mode === "cards") bindCards(); else bindList();
   }
   function cardsHTML() {
-    var d = F.deck; var known = d.filter(function (i) { return S.f[i] === 2; }).length;
+    var d = F.deck;
     if (!d.length) return '<div class="empty">Aucune fiche.</div>';
-    if (F.i >= d.length) {
-      return '<div class="panel empty"><h2>Paquet terminé</h2><p>' + known + " / " + d.length + ' définitions sues.</p><div class="row" style="justify-content:center"><button class="btn btn-gold" id="restartUnknown"' + (known === d.length ? " disabled" : "") + '>Revoir celles à retravailler</button><button class="btn btn-ghost" id="restartAll">Tout recommencer</button></div></div>';
-    }
     var f = FICHES[d[F.i]];
-    return '<div class="row" style="justify-content:space-between"><span class="qcount">Carte ' + (F.i + 1) + " / " + d.length + '</span><span class="muted small">' + known + ' sues</span></div><div class="qbar"><i style="width:' + (F.i / d.length * 100) + '%"></i></div>' +
+    return '<div class="row" style="justify-content:space-between"><span class="qcount">Carte ' + (F.i + 1) + " / " + d.length + '</span><span class="kbd-hint">Flèches ← → pour naviguer, espace pour retourner</span></div><div class="qbar"><i style="width:' + ((F.i + 1) / d.length * 100) + '%"></i></div>' +
       '<div class="flash-wrap"><button class="flash' + (F.flipped ? " flipped" : "") + '" id="flash" aria-label="Retourner la carte"><div class="face front"><span class="pill" style="align-self:flex-start">' + CH[f.ch].n + ". " + esc(CH[f.ch].short) + (f.hors ? " · tombé au QCM" : "") + '</span><div class="term">' + esc(f.term) + '</div><div class="tap">Essaie de réciter la définition, puis touche la carte pour vérifier.</div></div>' +
       '<div class="face back"><h3>' + esc(f.term) + '</h3><p class="def">' + esc(f.def) + "</p>" + (f.memo ? '<div class="memo"><b>Astuce :</b> ' + esc(f.memo) + "</div>" : "") + "</div></button></div>" +
-      '<div class="flash-ctl"><button class="btn btn-ghost" id="again">À revoir</button><button class="btn" id="known">Je savais</button></div>';
+      '<div class="flash-ctl"><button class="btn btn-ghost" id="prevCard"' + (F.i ? "" : " disabled") + ">" + ICON.prev + 'Précédente</button><button class="btn" id="nextCard"' + (F.i < d.length - 1 ? "" : " disabled") + ">Suivante" + ICON.next + "</button></div>";
   }
   function sizeFlash() {
     var fl = $("#flash", app); if (!fl) return;
@@ -419,13 +415,11 @@
     sizeFlash();
     var fl = $("#flash", app);
     if (fl) fl.onclick = function () { F.flipped = !F.flipped; fl.classList.toggle("flipped", F.flipped); };
-    var a = $("#again", app), k = $("#known", app);
-    function nxt(v) { S.f[F.deck[F.i]] = v; save(); F.i++; F.flipped = false; renderFiches(); }
-    if (a) a.onclick = function () { nxt(1); };
-    if (k) k.onclick = function () { nxt(2); };
-    var ru = $("#restartUnknown", app); if (ru) ru.onclick = function () { F.deck = shuffle(F.deck.filter(function (i) { return S.f[i] !== 2; })); F.i = 0; renderFiches(); };
-    var ra = $("#restartAll", app); if (ra) ra.onclick = function () { buildDeck(); renderFiches(); };
-    var onKey = function (e) { if (location.hash !== "#fiches" || F.mode !== "cards") return; if (e.key === " ") { e.preventDefault(); if (fl) fl.click(); } else if (e.key === "ArrowRight" && k) k.click(); else if (e.key === "ArrowLeft" && a) a.click(); };
+    function moveTo(i) { if (i < 0 || i >= F.deck.length) return; F.i = i; F.flipped = false; renderFiches(); }
+    var pv = $("#prevCard", app), nx = $("#nextCard", app);
+    if (pv) pv.onclick = function () { moveTo(F.i - 1); };
+    if (nx) nx.onclick = function () { moveTo(F.i + 1); };
+    var onKey = function (e) { if (location.hash !== "#fiches" || F.mode !== "cards") return; if (e.key === " ") { e.preventDefault(); if (fl) fl.click(); } else if (e.key === "ArrowRight") moveTo(F.i + 1); else if (e.key === "ArrowLeft") moveTo(F.i - 1); };
     document.addEventListener("keydown", onKey);
     window.addEventListener("resize", sizeFlash);
     cleanup = function () { document.removeEventListener("keydown", onKey); window.removeEventListener("resize", sizeFlash); };
@@ -646,7 +640,7 @@
       '<section class="panel stack"><h2>Ta progression</h2><p class="muted">Tes résultats sont enregistrés uniquement dans ce navigateur.</p><div id="resetBox"><button class="btn btn-ghost" id="reset">Effacer ma progression</button></div></section></div>';
     $("#reset", app).onclick = function () {
       var box = $("#resetBox", app);
-      box.innerHTML = '<div class="feedback ko"><div class="verdict">Tout effacer ?</div><div>Questions réussies, fiches sues, notes des devoirs blancs et des cas seront supprimées.</div><div class="row"><button class="btn" id="resetYes">Oui, tout effacer</button><button class="btn btn-ghost" id="resetNo">Annuler</button></div></div>';
+      box.innerHTML = '<div class="feedback ko"><div class="verdict">Tout effacer ?</div><div>Questions réussies, questions à revoir, notes des devoirs blancs et des cas seront supprimées.</div><div class="row"><button class="btn" id="resetYes">Oui, tout effacer</button><button class="btn btn-ghost" id="resetNo">Annuler</button></div></div>';
       $("#resetYes", box).onclick = function () { S = { q: {}, f: {}, cases: {}, exams: [], cfg: null }; save(); F.deck = null; toast("Progression effacée"); renderMemo(); };
       $("#resetNo", box).onclick = function () { renderMemo(); };
     };

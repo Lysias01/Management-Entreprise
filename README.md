@@ -17,7 +17,7 @@ Aucune installation, aucun serveur : que des fichiers HTML, CSS et JavaScript.
 
 - Ouvre l'adresse une première fois avec internet : le site s'enregistre pour fonctionner ensuite hors connexion.
 - Sur téléphone, menu du navigateur → **Ajouter à l'écran d'accueil** : il s'ouvre comme une application.
-- Ta progression (questions réussies, fiches sues, notes) est enregistrée dans le navigateur de chaque appareil.
+- Ta progression (questions réussies, questions à revoir, notes) est enregistrée dans le navigateur de chaque appareil.
 
 ## Modifier le contenu
 
