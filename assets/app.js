@@ -401,7 +401,7 @@
     var d = F.deck;
     if (!d.length) return '<div class="empty">Aucune fiche.</div>';
     var f = FICHES[d[F.i]];
-    return '<div class="row" style="justify-content:space-between"><span class="qcount">Carte ' + (F.i + 1) + " / " + d.length + '</span><span class="kbd-hint">Flèches ← → pour naviguer, espace pour retourner</span></div><div class="qbar"><i style="width:' + ((F.i + 1) / d.length * 100) + '%"></i></div>' +
+    return '<div class="row" style="justify-content:space-between"><span class="qcount">Carte ' + (F.i + 1) + " / " + d.length + '</span></div><div class="qbar"><i style="width:' + ((F.i + 1) / d.length * 100) + '%"></i></div>' +
       '<div class="flash-wrap"><button class="flash' + (F.flipped ? " flipped" : "") + '" id="flash" aria-label="Retourner la carte"><div class="face front"><span class="pill" style="align-self:flex-start">' + CH[f.ch].n + ". " + esc(CH[f.ch].short) + (f.hors ? " · tombé au QCM" : "") + '</span><div class="term">' + esc(f.term) + '</div><div class="tap">Essaie de réciter la définition, puis touche la carte pour vérifier.</div></div>' +
       '<div class="face back"><h3>' + esc(f.term) + '</h3><p class="def">' + esc(f.def) + "</p>" + (f.memo ? '<div class="memo"><b>Astuce :</b> ' + esc(f.memo) + "</div>" : "") + "</div></button></div>" +
       '<div class="flash-ctl"><button class="btn btn-ghost" id="prevCard"' + (F.i ? "" : " disabled") + ">" + ICON.prev + 'Précédente</button><button class="btn" id="nextCard"' + (F.i < d.length - 1 ? "" : " disabled") + ">Suivante" + ICON.next + "</button></div>";
