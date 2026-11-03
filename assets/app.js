@@ -37,6 +37,7 @@
   var S = { q: {}, f: {}, cases: {}, exams: [], cfg: null };
   try { var raw = localStorage.getItem(KEY); if (raw) { var p = JSON.parse(raw); if (p && typeof p === "object") S = Object.assign(S, p); } } catch (e) { }
   if (!S.v || S.v < 2) { if (S.cfg) S.cfg.types = ["qcm"]; S.v = 2; }
+  if (S.v < 3) { if (S.cfg && S.cfg.types && S.cfg.types.indexOf("qcm") >= 0 && S.cfg.types.indexOf("multi") < 0) S.cfg.types.push("multi"); S.v = 3; }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
   function rec(q, ok) {
     var r = S.q[q.id] || { ok: 0, ko: 0, st: 0 };
@@ -128,7 +129,7 @@
     var last = S.exams.length ? S.exams[S.exams.length - 1] : null;
     var nProf = QUESTIONS.filter(function (q) { return q.src === "prof"; }).length;
     var nErr = errorList().length;
-    var nQcm = QUESTIONS.filter(function (q) { return q.t === "qcm"; }).length;
+    var nQcm = QUESTIONS.filter(function (q) { return q.t === "qcm" || q.t === "multi"; }).length;
     var n25 = QUESTIONS.filter(function (q) { return q.src === "25qcm"; }).length;
     var nMast = QUESTIONS.filter(mastered).length;
     var nCases = CASES.filter(function (c) { return S.cases[c.id] && S.cases[c.id].best != null; }).length;
@@ -163,8 +164,8 @@
      QUIZ
      ========================================================= */
   var QS = null; // session en cours
-  function defaultCfg() { return { mode: "libre", ch: CHAPTERS.map(function (c) { return c.id; }), types: ["qcm"], n: 15 }; }
-  var TYPE_LABEL = { qcm: "QCM", vf: "Vrai / faux", open: "Réponse à écrire", ordre: "Remettre dans l'ordre" };
+  function defaultCfg() { return { mode: "libre", ch: CHAPTERS.map(function (c) { return c.id; }), types: ["qcm", "multi"], n: 15 }; }
+  var TYPE_LABEL = { qcm: "QCM", multi: "QCM à plusieurs réponses", vf: "Vrai / faux", open: "Réponse à écrire", ordre: "Remettre dans l'ordre" };
 
   function buildSession(cfg) {
     var list, timed = false, exam = false;
@@ -173,11 +174,12 @@
     else if (cfg.mode === "exam") {
       exam = true; timed = true;
       var pool = QUESTIONS.filter(function (q) { return q.t === "qcm"; });
+      var multis = shuffle(QUESTIONS.filter(function (q) { return q.t === "multi"; })).slice(0, 4);
       var prof = shuffle(pool.filter(function (q) { return q.src === "prof"; })).slice(0, 6);
       var rest = pool.filter(function (q) { return q.src !== "prof"; });
       var picked = [];
       CHAPTERS.forEach(function (c) { picked = picked.concat(shuffle(rest.filter(function (q) { return q.ch === c.id; })).slice(0, c.id === "c4" || c.id === "c5" ? 4 : 2)); });
-      list = shuffle(prof.concat(picked)).slice(0, 20);
+      list = shuffle(prof.concat(multis, shuffle(picked).slice(0, 20 - prof.length - multis.length)));
     } else {
       list = QUESTIONS.filter(function (q) { return cfg.ch.indexOf(q.ch) >= 0 && cfg.types.indexOf(q.t) >= 0; });
       list = shuffle(list).sort(function (a, b) { return (mastered(a) ? 1 : 0) - (mastered(b) ? 1 : 0); });
@@ -236,7 +238,10 @@
     var badges = '<span class="pill">' + CH[q.ch].n + ". " + esc(CH[q.ch].short) + "</span>" + '<span class="pill" style="background:var(--surface-2)">' + TYPE_LABEL[q.t] + "</span>" +
       (q.src === "prof" ? '<span class="pill pill-prof">QCM du prof</span>' : "") + (q.src === "25qcm" ? '<span class="pill pill-hors">Série 25 QCM</span>' : "");
     var body = "";
-    if (q.t === "qcm") {
+    if (q.t === "multi") {
+      var sel = it.val || [];
+      body = '<p class="qhint">Plusieurs réponses possibles : coche toutes les bonnes.</p><div class="opts" role="group">' + it.order.map(function (k, pos) { return '<button class="opt" role="checkbox" data-k="' + k + '" aria-checked="' + (sel.indexOf(k) >= 0) + '"><span class="bub">' + LETTERS[pos] + "</span><span>" + esc(q.o[k]) + "</span></button>"; }).join("") + "</div>";
+    } else if (q.t === "qcm") {
       body = '<div class="opts" role="radiogroup">' + it.order.map(function (k, pos) { return '<button class="opt" role="radio" data-k="' + k + '" aria-checked="' + (it.val === k) + '"><span class="bub">' + LETTERS[pos] + "</span><span>" + esc(q.o[k]) + "</span></button>"; }).join("") + "</div>";
     } else if (q.t === "vf") {
       body = '<div class="opts vf" role="radiogroup">' + [[true, "Vrai", "V"], [false, "Faux", "F"]].map(function (o) { return '<button class="opt" role="radio" data-v="' + o[0] + '" aria-checked="' + (it.val === o[0]) + '"><span class="bub">' + o[2] + "</span><span>" + o[1] + "</span></button>"; }).join("") + "</div>";
@@ -288,6 +293,13 @@
     $$(".opt", app).forEach(function (b) {
       b.onclick = function () {
         if (it.graded) return;
+        if (q.t === "multi") {
+          var k = +b.dataset.k, cur = (it.val || []).filter(function (x) { return x !== k; });
+          if (cur.length === (it.val || []).length) cur.push(k);
+          it.val = cur.length ? cur : null; b.setAttribute("aria-checked", String(cur.indexOf(k) >= 0));
+          if (QS.exam) { var g0 = $$(".exam-grid button", app)[QS.i]; if (g0) g0.classList.toggle("done", !!it.val); }
+          return;
+        }
         it.val = q.t === "vf" ? b.dataset.v === "true" : +b.dataset.k;
         $$(".opt", app).forEach(function (x) { x.setAttribute("aria-checked", x === b ? "true" : "false"); });
         if (QS.exam) { var g = $$(".exam-grid button", app)[QS.i]; if (g) g.classList.add("done"); }
@@ -320,6 +332,7 @@
     var q = it.q;
     if (it.val === null || it.val === undefined || it.val === "") return false;
     if (q.t === "qcm") return it.val === q.a;
+    if (q.t === "multi") return it.val.length === q.a.length && q.a.every(function (k) { return it.val.indexOf(k) >= 0; });
     if (q.t === "vf") return it.val === q.a;
     if (q.t === "ordre") return it.pick.length === q.items.length && it.pick.every(function (k, i) { return k === i; });
     if (q.t === "open") return evalOpen(it.val, q.k).ratio >= 0.6;
@@ -336,7 +349,10 @@
   }
   function showFeedback(it) {
     var q = it.q, fb = $("#fb", app); var h = "";
-    if (q.t === "qcm") {
+    if (q.t === "multi") {
+      $$(".opt", app).forEach(function (b) { b.disabled = true; var k = +b.dataset.k; if (q.a.indexOf(k) >= 0) b.classList.add("ok"); else if ((it.val || []).indexOf(k) >= 0) b.classList.add("ko"); });
+      if (!it.correct) h += '<div class="model"><b>Il fallait cocher :</b> ' + esc(goodText(q)) + "</div>";
+    } else if (q.t === "qcm") {
       $$(".opt", app).forEach(function (b) { b.disabled = true; var k = +b.dataset.k; if (k === q.a) b.classList.add("ok"); else if (k === it.val) b.classList.add("ko"); });
     } else if (q.t === "vf") {
       $$(".opt", app).forEach(function (b) { b.disabled = true; var v = b.dataset.v === "true"; if (v === q.a) b.classList.add("ok"); else if (v === it.val) b.classList.add("ko"); });
@@ -390,12 +406,14 @@
     var q = it.q;
     if (it.val === null || it.val === undefined) return "Pas de réponse";
     if (q.t === "qcm") return q.o[it.val];
+    if (q.t === "multi") return it.val.map(function (k) { return q.o[k]; }).join(" ; ");
     if (q.t === "vf") return it.val ? "Vrai" : "Faux";
     if (q.t === "ordre") return it.pick.map(function (k) { return q.items[k]; }).join(" → ");
     return it.val;
   }
   function goodText(q) {
     if (q.t === "qcm") return q.o[q.a];
+    if (q.t === "multi") return q.a.map(function (k) { return q.o[k]; }).join(" ; ");
     if (q.t === "vf") return q.a ? "Vrai" : "Faux";
     if (q.t === "ordre") return q.items.join(" → ");
     return q.a;
@@ -426,7 +444,7 @@
     if (e.target && (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT")) { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { var c0 = $("#check", app); if (c0) c0.click(); } return; }
     var it = QS.items[QS.i]; var k = e.key.toLowerCase();
     var map = { a: 0, b: 1, c: 2, d: 3, "1": 0, "2": 1, "3": 2, "4": 3 };
-    if (it.q.t === "qcm" && map[k] !== undefined) { var opts = $$(".opt", app); if (opts[map[k]]) opts[map[k]].click(); }
+    if ((it.q.t === "qcm" || it.q.t === "multi") && map[k] !== undefined) { var opts = $$(".opt", app); if (opts[map[k]]) opts[map[k]].click(); }
     else if (it.q.t === "vf" && (k === "v" || k === "f")) { var o2 = $$(".opt", app); o2[k === "v" ? 0 : 1].click(); }
     else if (e.key === "Enter") { var c = $("#check", app) || $("#next", app); if (c) { e.preventDefault(); c.click(); } }
   });

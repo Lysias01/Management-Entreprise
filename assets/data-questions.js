@@ -1,11 +1,13 @@
 /* Banque de questions.
-   Types : qcm (choix multiple), vf (vrai/faux), open (réponse à saisir), ordre (remettre dans l'ordre)
+   Types : qcm (une seule bonne réponse), multi (plusieurs bonnes réponses possibles), vf (vrai/faux), open (réponse à saisir), ordre (remettre dans l'ordre)
    src : "prof" = QCM fourni par l'enseignant / préparation du devoir ; "25qcm" = série « 25 QCM corrigés » (reprise mot pour mot) ; sinon cours.
    fix : remarque quand le corrigé officiel contredit le cours (la question reste intacte). */
 (function () {
   var Q = [];
   // qcm(ch, question, options, indexBonneRéponse, explication, src, opts)
   function qcm(ch, q, o, a, ex, src, x) { Q.push(Object.assign({ t: "qcm", ch: ch, q: q, o: o, a: a, ex: ex || "", src: src || "cours" }, x || {})); }
+  // multi(ch, question, options, [indices des bonnes réponses], explication)
+  function multi(ch, q, o, a, ex, src, x) { Q.push(Object.assign({ t: "multi", ch: ch, q: q, o: o, a: a, ex: ex || "", src: src || "cours" }, x || {})); }
   function vf(ch, q, a, ex, src) { Q.push({ t: "vf", ch: ch, q: q, a: a, ex: ex || "", src: src || "cours" }); }
   // k : liste de groupes de mots-clés ; chaque groupe = alternatives acceptées
   function open(ch, q, a, k, ex, src) { Q.push({ t: "open", ch: ch, q: q, a: a, k: k, ex: ex || "", src: src || "cours" }); }
@@ -352,7 +354,7 @@
   qcm("c4", "Le raisonnement stratégique va :",
     ["Du court terme vers le long terme", "De l'interne vers l'externe", "Du long terme vers le court terme", "De l'action vers l'objectif"], 2, "Long → court ; global → proximité ; externe → interne ; aval → amont ; objectif → action.");
   qcm("c4", "« Think global, act local » correspond au raisonnement :",
-    ["De l'externe vers l'interne", "De l'amont vers l'aval", "Du court vers le long terme", "De l'action vers l'objectif"], 0, "");
+    ["Du global vers la proximité", "De l'externe vers l'interne", "De l'amont vers l'aval", "De l'action vers l'objectif"], 0, "Dans le cours (raisonnement stratégique), « think global, act local » illustre le 2e point : du global vers la proximité.");
   qcm("c4", "La question fondamentale des associés dans le cadre de référence est :",
     ["Combien allons-nous gagner cette année ?", "Que voulons-nous faire ensemble de cette entreprise ?", "Qui sera le prochain directeur ?", "Quel logiciel acheter ?"], 1, "");
   qcm("c4", "« Quelle est la raison d'être de l'entreprise ? » renvoie à :",
@@ -752,6 +754,259 @@
     ["Identification", "Évaluation (probabilité × impact)", "Plan d'action", "Mise en œuvre et suivi"], "");
   ordre("c5", "Classe les styles de management du plus « encadrant » au plus « autonome ».",
     ["Directif", "Persuasif", "Participatif", "Délégatif"], "Plus le collaborateur est compétent et motivé, plus on peut déléguer.");
+
+  /* =====================================================================
+     QCM À PLUSIEURS RÉPONSES (une ou plusieurs bonnes réponses à cocher)
+     ===================================================================== */
+  // Chapitre I
+  multi("c1", "Quelles sont les caractéristiques d'une organisation ?",
+    ["Une division et une coordination des tâches", "Des règles et procédures de fonctionnement", "Une hiérarchie et un contrôle", "La recherche obligatoire du profit", "Une stabilité relative"], [0, 1, 2, 4],
+    "Les 4 caractéristiques du cours : division/coordination, règles/procédures, hiérarchie/contrôle, stabilité relative. Le profit n'en fait pas partie.");
+  multi("c1", "Lesquels font partie de l'environnement interne de l'entreprise ?",
+    ["Les associés", "Les dirigeants", "Le personnel", "Les clients", "La banque"], [0, 1, 2],
+    "Interne : associés, dirigeants, personnel. Clients, fournisseurs et banque = environnement externe.");
+  multi("c1", "Quels critères servent à classer les entreprises (typologie) ?",
+    ["Le secteur d'activité", "La taille", "La propriété du capital", "La nature juridique", "L'âge du dirigeant"], [0, 1, 2, 3],
+    "Les 4 classifications du cours : secteur d'activité, taille, propriété du capital, nature juridique.");
+  multi("c1", "Quels flux l'entreprise échange-t-elle avec son environnement ?",
+    ["Des flux réels", "Des flux financiers", "Des flux informationnels", "Des flux militaires"], [0, 1, 2],
+    "Flux réels, financiers et informationnels.");
+  multi("c1", "Parmi ces entreprises, lesquelles appartiennent au secteur tertiaire ?",
+    ["Une banque", "Une compagnie d'assurance", "Une mine d'or", "Une cimenterie", "Un hôtel"], [0, 1, 4],
+    "Tertiaire = services (banque, assurance, hôtellerie). La mine = primaire ; la cimenterie (transformation) = secondaire.");
+  multi("c1", "Selon l'approche micro-économique, l'entreprise utilise des moyens :",
+    ["Matériels", "Financiers", "Humains", "Informationnels", "Militaires"], [0, 1, 2, 3],
+    "Moyens matériels, financiers, humains et informationnels pour produire, échanger ou faire circuler des biens et services.");
+  multi("c1", "Quelles familles de finalités de l'entreprise sont citées dans le cours ?",
+    ["Économiques", "Sociales ou sociétales", "Techniques ou technologiques", "Religieuses"], [0, 1, 2],
+    "E-S-T : économiques, sociales/sociétales, techniques/technologiques.");
+
+  // Chapitre II
+  multi("c2", "Quelles qualités montrent que le management est un ART ?",
+    ["L'intuition", "Le flair", "La persévérance", "La statistique", "La comptabilité"], [0, 1, 2],
+    "Art = qualités personnelles (attitude, intuition, valeurs, flair, persévérance, ténacité, bon sens). Statistique et comptabilité = science.");
+  multi("c2", "Quels outils montrent que le management est une SCIENCE ?",
+    ["La comptabilité", "Les mathématiques", "La statistique", "La psychologie", "L'intuition"], [0, 1, 2, 3],
+    "Science = démarche normative et outils multidisciplinaires : comptabilité, mathématiques, statistique, informatique, sociologie, psychologie. L'intuition relève de l'art.");
+  multi("c2", "Quels sont les piliers du système de management ?",
+    ["La planification", "L'organisation", "La direction", "Le contrôle", "La comptabilité", "La production"], [0, 1, 2, 3],
+    "P-O-D-C : planification, organisation, direction, contrôle.");
+  multi("c2", "Parmi ces éléments, lesquels font partie des 10 tâches du manager ?",
+    ["Motiver", "Déléguer", "Prévoir", "Vendre au comptoir", "Fabriquer les produits"], [0, 1, 2],
+    "Organiser, animer, motiver, communiquer, déléguer, gérer, analyser, décider, prévoir, contrôler.");
+  multi("c2", "Selon le cours, le manager doit être :",
+    ["Leader", "Stratège", "Négociateur", "Juge", "Comptable"], [0, 1, 2],
+    "Leader, stratège, animateur, gestionnaire des ressources, planificateur, communicateur et négociateur.");
+  multi("c2", "Quelles origines du mot « management » sont citées dans le cours ?",
+    ["Manager : le conducteur d'un bateau", "L'italien managgiare : manier ou dresser un cheval", "Le latin : la main", "Le grec organon : l'outil"], [0, 1, 2],
+    "Organon (outil, instrument) est l'origine du mot « organisation », pas de « management ».");
+  multi("c2", "Quels sont les profils de manager présentés dans le cours ?",
+    ["Autoritaire ou autocratique", "Permissif ou laisser-faire", "Démocratique ou participatif", "Comptable"], [0, 1, 2],
+    "Les trois types de managers les plus importants selon le cours.");
+  multi("c2", "Quels sont les niveaux de managers selon la dimension hiérarchique ?",
+    ["Les top managers", "Les managers moyens ou intermédiaires", "Les managers de première ligne", "Les managers stagiaires"], [0, 1, 2],
+    "Trois niveaux : top managers, managers intermédiaires, managers de première ligne.");
+
+  // Chapitre III
+  multi("c3", "Quelles formes de société ne comptent qu'un seul associé ?",
+    ["EURL", "SASU", "SARL", "SA", "SAS"], [0, 1],
+    "EURL = SARL à associé unique ; SASU = SAS à associé unique.");
+  multi("c3", "Quels sont les trois piliers du business model ?",
+    ["La proposition de valeur", "L'architecture de valeur", "L'équation de profit", "L'organigramme", "Le plan de communication"], [0, 1, 2],
+    "Quoi/qui/combien (proposition), comment (architecture), rentabilité (équation de profit).");
+  multi("c3", "La proposition de valeur répond aux questions :",
+    ["Quoi ?", "Qui ?", "Combien ?", "Comment ?", "Où ?"], [0, 1, 2],
+    "Quoi = l'offre, qui = le client, combien = le prix. « Comment ? » relève de l'architecture de valeur.");
+  multi("c3", "Que comprend l'équation de profit ?",
+    ["La structure de coûts", "Les types et volumes de revenus", "Les capitaux engagés", "Les segments de clientèle"], [0, 1, 2],
+    "Elle explique l'origine de la rentabilité du modèle.");
+  multi("c3", "Quels blocs du Business Model Canvas forment le côté « infrastructure » de l'offre ?",
+    ["Partenaires clés", "Activités clés", "Ressources clés", "Canaux", "Segments de clientèle"], [0, 1, 2],
+    "Côté infrastructure : partenaires, activités, ressources clés. Canaux, relations et segments = côté délivraison.");
+  multi("c3", "Quels blocs du Business Model Canvas forment le côté « délivraison » de l'offre ?",
+    ["Segments de clientèle", "Relations avec le client", "Canaux", "Ressources clés", "Activités clés"], [0, 1, 2],
+    "Côté délivraison : segments de clientèle, relations avec le client, canaux de distribution.");
+  multi("c3", "Dans le Business Model Canvas de Nespresso, quels sont les flux de revenus ?",
+    ["La vente de machines", "La vente de capsules", "La publicité", "Les commissions sur les courses"], [0, 1],
+    "Vente de machines et vente de capsules.");
+  multi("c3", "Pour Nespresso, quelles sont des ressources clés ?",
+    ["Le café", "Les usines", "Les brevets", "Les marques", "Les cultivateurs"], [0, 1, 2, 3],
+    "Ce que l'entreprise possède = ressources. Les cultivateurs sont des partenaires clés.");
+  multi("c3", "Pour un médicament remboursé, qui sont les payeurs ?",
+    ["La mutuelle", "La sécurité sociale", "Le patient", "Le médecin"], [0, 1],
+    "Patient = utilisateur ; mutuelle et sécurité sociale = payeurs ; médecin et pharmacien = prescripteurs.");
+  multi("c3", "Dans le business model d'une compagnie low cost, quels éléments relèvent de l'architecture de valeur (le « comment ») ?",
+    ["Des avions neufs identiques", "Des hôtesses multitâches", "De nombreuses rotations", "Des prix très bas", "Les touristes comme clients"], [0, 1, 2],
+    "Prix très bas et touristes = proposition de valeur (combien / qui).");
+  multi("c3", "Selon le cours, pourquoi les modèles d'Airbnb, Uber et Google fonctionnent-ils ?",
+    ["Ils attirent les deux parties", "Ils simplifient la rencontre", "Ils instaurent la confiance", "Ils réinvestissent dans la croissance", "Ils fixent les prix les plus élevés du marché"], [0, 1, 2, 3],
+    "Les 4 raisons du cours : attirer les deux parties, simplifier la rencontre, instaurer la confiance, réinvestir dans la croissance.");
+  multi("c3", "Quelles sont des sources de revenus de Google ?",
+    ["La publicité", "Le cloud", "Les outils professionnels (Workspace)", "Les appareils et abonnements", "Les commissions sur les courses de taxi"], [0, 1, 2, 3],
+    "Les commissions sur les courses, c'est le modèle d'Uber.");
+  multi("c3", "Que regroupe le modèle RCOV ?",
+    ["Les ressources et compétences", "L'organisation interne et externe", "La proposition de valeur", "La rentabilité commerciale"], [0, 1, 2],
+    "R-C = ressources et compétences, O = organisation, V = proposition de valeur (Lecocq, Demil, Warnier).");
+
+  // Chapitre IV
+  multi("c4", "Lesquels sont des facteurs de l'analyse PESTEL ?",
+    ["Politique", "Économique", "Technologique", "Légal", "Financier interne", "Concurrentiel"], [0, 1, 2, 3],
+    "PESTEL = Politique, Économique, Socioculturel, Technologique, Écologique, Légal. Le financier interne relève du diagnostic interne ; la concurrence, des 5 forces de Porter.");
+  multi("c4", "Dans une SWOT, quels éléments sont des facteurs externes ?",
+    ["Les opportunités", "Les menaces", "Les forces", "Les faiblesses"], [0, 1],
+    "Forces et faiblesses = interne ; opportunités et menaces = externe.");
+  multi("c4", "Parmi ces éléments, lesquels sont des forces dans une SWOT ?",
+    ["La capacité d'innovation", "La notoriété de la marque", "Des brevets technologiques", "Le monosourcing", "Un turnover du personnel important"], [0, 1, 2],
+    "Monosourcing et turnover important sont des faiblesses (internes, défavorables).");
+  multi("c4", "Parmi ces éléments, lesquels sont des menaces dans une SWOT ?",
+    ["Une concurrence directe et élargie", "Une réglementation défavorable", "L'augmentation du coût des matières", "De nouvelles technologies", "Des employés qualifiés"], [0, 1, 2],
+    "Les nouvelles technologies sont une opportunité ; les employés qualifiés, une force.");
+  multi("c4", "Parmi ces éléments, lesquels sont des opportunités dans une SWOT ?",
+    ["Un marché en croissance", "De nouveaux canaux de distribution", "Une réglementation favorable", "La saisonnalité", "Une faible capacité financière"], [0, 1, 2],
+    "La saisonnalité est une menace ; la faible capacité financière, une faiblesse.");
+  multi("c4", "Quelles sont les forces du modèle de Porter ?",
+    ["La menace des nouveaux entrants", "Le pouvoir de négociation des fournisseurs", "Le pouvoir de négociation des clients", "La menace des produits de substitution", "La rivalité entre concurrents existants", "Le taux d'inflation"], [0, 1, 2, 3, 4],
+    "Les 5 forces de Porter. L'inflation est un facteur économique de PESTEL.");
+  multi("c4", "Quelles barrières à l'entrée sont citées dans le cours ?",
+    ["La réglementation", "La technologie", "L'intensité capitalistique", "Le nombre de clients"], [0, 1, 2],
+    "Les trois barrières à l'entrée du schéma des 5 forces.");
+  multi("c4", "Le raisonnement stratégique va :",
+    ["Du long terme vers le court terme", "Du global vers la proximité", "De l'externe vers l'interne", "De l'action vers l'objectif", "De l'amont vers l'aval"], [0, 1, 2],
+    "Les 5 sens du cours : long → court terme, global → proximité, externe → interne, aval → amont, objectif → action. Les deux dernières options sont inversées.");
+  multi("c4", "Sur quoi repose le cadre de référence fondamental (volonté des dirigeants propriétaires) ?",
+    ["La vision", "Les valeurs", "La vocation", "Le budget annuel"], [0, 1, 2],
+    "Vision, valeurs, vocation.");
+  multi("c4", "Selon le cours, la stratégie consiste à définir :",
+    ["L'ambition et le cap à atteindre", "Le business model pour y parvenir", "Les activités à privilégier", "Les moyens à allouer", "Le planning de la semaine"], [0, 1, 2, 3],
+    "Plus les ressources pour les financer. Le planning de la semaine relève de l'opérationnel.");
+  multi("c4", "Quelles questions se poser pour déterminer les DAS de l'entreprise ?",
+    ["Des clients spécifiques ?", "Des concurrents spécifiques ?", "Des FCS spécifiques ou hiérarchisés différemment ?", "Un centre de profit avec des flux distincts ?", "La couleur de l'emballage ?"], [0, 1, 2, 3],
+    "Les 7 questions : clients, concurrents, compétences distinctives, FCS, centre de profit, devenir autonome, organisation autonome.");
+  multi("c4", "Quels sont les FCS d'un DAS de « banalisation de l'offre » ?",
+    ["Le volume de production", "La standardisation", "La productivité", "L'open innovation", "La différenciation"], [0, 1, 2],
+    "Open innovation, différenciation et marketing = savoir-faire différenciateur.");
+  multi("c4", "Quels sont les facteurs clés de succès de l'économie d'environnement ?",
+    ["La stratégie", "La prospective", "L'agilité", "La communication", "La capacité de production"], [0, 1, 2, 3],
+    "La capacité de production est un FCS de l'économie de production.");
+  multi("c4", "Dans la matrice McKinsey, quelles recommandations relèvent de la logique de développement ?",
+    ["Conforter son leadership", "Développer, investir sur les FCS", "Segmenter, investir sélectivement", "Maximiser la profitabilité", "Abandonner, désinvestir"], [0, 1, 2],
+    "Maximiser la profitabilité = maintien ; abandonner = repli.");
+  multi("c4", "Dans la matrice McKinsey, quelles recommandations relèvent de la logique de repli ?",
+    ["Se retirer sélectivement", "Se désengager progressivement", "Abandonner, désinvestir", "Rentabiliser prudemment", "Conforter son leadership"], [0, 1, 2],
+    "Rentabiliser prudemment = maintien ; conforter son leadership = développement.");
+  multi("c4", "Quels critères servent à évaluer et comparer les scénarios stratégiques ?",
+    ["La cohérence avec le cadre de référence fondamental", "La réversibilité", "L'acceptabilité par les acteurs clés", "L'impact économique et financier", "L'âge du dirigeant"], [0, 1, 2, 3],
+    "Les 7 critères : cohérence avec le CRF, attractivité, accessibilité aux FCS, impact économique et financier, acceptabilité, réversibilité, impacts prévisibles.");
+  multi("c4", "Dans l'analyse financière, quels éléments mesurent la santé financière ?",
+    ["La valeur patrimoniale", "La capacité d'autofinancement (CAF)", "Le niveau d'endettement", "La rentabilité financière", "Le niveau de BFR"], [0, 1, 2, 3],
+    "Le niveau de BFR relève de l'équilibre de trésorerie.");
+  multi("c4", "Quelles stratégies d'Ansoff visent un NOUVEAU marché ?",
+    ["Le développement de marché", "La diversification", "La pénétration de marché", "Le développement de produit"], [0, 1],
+    "Pénétration et développement de produit restent sur le marché actuel.");
+  multi("c4", "Quelles stratégies d'Ansoff impliquent un NOUVEAU produit ?",
+    ["Le développement de produit", "La diversification", "La pénétration de marché", "Le développement de marché"], [0, 1],
+    "Pénétration et développement de marché gardent le produit actuel.");
+  multi("c4", "Quelles sont les compétences du dirigeant stratège ?",
+    ["Les capacités de diagnostic", "Les capacités de projection prospective", "Les capacités de décision", "Les capacités d'animation", "Les capacités de saisie comptable"], [0, 1, 2, 3],
+    "Diagnostic, prospective, décision, animation.");
+
+  // Chapitre V
+  multi("c5", "Quels sont les principes de base du management opérationnel ?",
+    ["Diriger", "Mobiliser", "Contrôler", "Racheter des concurrents"], [0, 1, 2],
+    "D-M-C : diriger, mobiliser, contrôler.");
+  multi("c5", "Quels exemples relèvent du management opérationnel ?",
+    ["L'embauche", "La fixation des prix", "Le lancement d'une opération de promotion", "Le rachat d'un concurrent", "Le changement de structure"], [0, 1, 2],
+    "Rachat d'un concurrent et changement de structure = management stratégique.");
+  multi("c5", "Quelles caractéristiques correspondent au management stratégique ?",
+    ["Un horizon long terme (plus de 3 ans)", "Une vision externe orientée sur l'environnement", "Des décisions non réversibles", "Des décisions prises par les chefs de service", "La gestion au quotidien"], [0, 1, 2],
+    "Chefs de service et gestion au quotidien = management opérationnel.");
+  multi("c5", "Quelles sont les caractéristiques d'un KPI ?",
+    ["Mesurable", "Pertinent", "Temporel", "Spécifique", "Imprécis"], [0, 1, 2, 3],
+    "Plus « atteignable ». Un KPI doit être basé sur des données claires et précises.");
+  multi("c5", "Lesquels sont des indicateurs financiers selon le cours ?",
+    ["Le chiffre d'affaires", "La marge bénéficiaire", "Le retour sur investissement (ROI)", "Le coût d'acquisition client (CAC)", "Le taux d'absentéisme"], [0, 1, 2, 3],
+    "Le taux d'absentéisme est un KPI ressources humaines.");
+  multi("c5", "Lesquels sont des KPI ressources humaines ?",
+    ["Le taux de rotation du personnel", "Le taux d'absentéisme", "L'engagement des employés", "Le taux de conversion", "La valeur à vie du client"], [0, 1, 2],
+    "Taux de conversion et valeur à vie du client = marketing et ventes.");
+  multi("c5", "Quels sont des objectifs du management opérationnel ?",
+    ["L'optimisation des opérations", "L'atteinte des objectifs de qualité", "La gestion des ressources", "La satisfaction du client", "La définition de la vision de l'entreprise"], [0, 1, 2, 3],
+    "La vision relève du management stratégique.");
+  multi("c5", "Lesquelles sont des ressources immatérielles ?",
+    ["La marque", "La réputation", "La notoriété", "Les stocks", "Les capitaux propres"], [0, 1, 2],
+    "Stocks = ressource matérielle ; capitaux propres = ressource financière.");
+  multi("c5", "Selon Herzberg, lesquels sont des facteurs d'hygiène ?",
+    ["Le salaire", "Les conditions de travail", "Les relations avec les collègues", "La reconnaissance", "Les responsabilités"], [0, 1, 2],
+    "Reconnaissance et responsabilités = facteurs de motivation.");
+  multi("c5", "Selon Herzberg, lesquels sont des facteurs de motivation ?",
+    ["La reconnaissance", "Les responsabilités", "La croissance professionnelle", "Le salaire", "Les conditions de travail"], [0, 1, 2],
+    "Salaire et conditions de travail = facteurs d'hygiène.");
+  multi("c5", "Quels sont les principes clés du taylorisme ?",
+    ["La division du travail", "La standardisation", "Le contrôle", "La rémunération au mérite", "L'autonomie totale des ouvriers"], [0, 1, 2, 3],
+    "Taylor sépare conception et exécution : pas d'autonomie des ouvriers.");
+  multi("c5", "Quels sont les grands principes du fordisme ?",
+    ["La standardisation du produit", "Le travail à la chaîne", "L'augmentation du pouvoir d'achat des ouvriers", "La production sur mesure"], [0, 1, 2],
+    "Production de masse de produits standardisés, pas sur mesure.");
+  multi("c5", "Lesquels font partie de la pyramide des besoins de Maslow ?",
+    ["Les besoins physiologiques", "Le besoin de sécurité", "Le besoin d'appartenance", "Le besoin d'estime", "Le besoin d'accomplissement de soi", "Le besoin de pouvoir"], [0, 1, 2, 3, 4],
+    "5 niveaux ; le pouvoir n'en fait pas partie (c'est un des « carburants » motivationnels).");
+  multi("c5", "Lesquels sont des « carburants » motivationnels cités dans le cours ?",
+    ["La stabilité, la routine, la sécurité", "L'apprentissage", "L'argent", "L'autonomie", "La peur de la sanction"], [0, 1, 2, 3],
+    "Les 7 : stabilité, diversité, apprentissage, argent, relation, pouvoir, autonomie.");
+  multi("c5", "Quelles sont des fonctions du système d'information pour le manager opérationnel ?",
+    ["L'aide à la prise de décision", "L'amélioration de la productivité", "La coordination et la communication", "Le contrôle et le suivi des performances", "Le remplacement des managers"], [0, 1, 2, 3],
+    "Plus la gestion des risques et de la conformité. Le SI aide le manager, il ne le remplace pas.");
+  multi("c5", "Que permet la communication interne ?",
+    ["Aligner les équipes sur les objectifs", "Coordonner les actions", "Favoriser la collaboration", "Maintenir la motivation", "Valoriser l'image auprès des investisseurs"], [0, 1, 2, 3],
+    "Valoriser l'image auprès des investisseurs relève de la communication externe.");
+  multi("c5", "Que permet la communication externe ?",
+    ["Valoriser l'image et la crédibilité de l'entreprise", "Diffuser les résultats et les réussites", "Gérer la réputation et prévenir les crises", "Aligner les équipes sur les objectifs"], [0, 1, 2],
+    "Aligner les équipes relève de la communication interne.");
+  multi("c5", "Quelles compétences sont utiles dans la gestion des conflits ?",
+    ["L'écoute active", "L'impartialité et l'objectivité", "La médiation et la négociation", "Le suivi après résolution", "Le favoritisme"], [0, 1, 2, 3],
+    "Plus la prise de décision rapide et équitable. Le favoritisme est à proscrire.");
+  multi("c5", "Quelles sont les réponses possibles face à un risque ?",
+    ["Éviter", "Réduire", "Transférer", "Accepter", "Ignorer"], [0, 1, 2, 3],
+    "Éviter, réduire, transférer, accepter.");
+  multi("c5", "Sur quoi s'appuie l'excellence opérationnelle ?",
+    ["Le Lean", "Six Sigma", "La gestion de la qualité totale", "L'analyse PESTEL", "La matrice d'Ansoff"], [0, 1, 2],
+    "PESTEL et Ansoff sont des outils stratégiques.");
+  multi("c5", "Quels sont des principes de la gestion de projet agile ?",
+    ["La réponse rapide au changement", "Des livraisons fréquentes", "La collaboration avec le client", "Des équipes autonomes et pluridisciplinaires", "Un plan rigide sans modification"], [0, 1, 2, 3],
+    "L'agile favorise l'adaptabilité plutôt qu'un plan rigide.");
+  multi("c5", "Quelles sont des étapes du design thinking ?",
+    ["L'empathie", "L'idéation", "Le prototypage", "Le test", "La délégation"], [0, 1, 2, 3],
+    "Empathie, définition, idéation, prototypage, test.");
+  multi("c5", "Quels sont les axes du Balanced Scorecard ?",
+    ["Financier", "Clients", "Processus internes", "Apprentissage organisationnel", "Concurrents"], [0, 1, 2, 3],
+    "Kaplan et Norton : 4 axes.");
+  multi("c5", "Quels sont les styles de management présentés dans le cours ?",
+    ["Directif", "Persuasif", "Participatif", "Délégatif", "Laxiste"], [0, 1, 2, 3],
+    "Les 4 styles selon la compétence et la motivation du collaborateur.");
+  multi("c5", "Selon leur portée, les décisions sont :",
+    ["Stratégiques", "Administratives ou tactiques", "Opérationnelles", "Fiscales"], [0, 1, 2],
+    "Long terme (direction générale), moyen terme (cadres intermédiaires), court terme (encadrement de proximité).");
+  multi("c5", "Quels types de contrôle accompagnent la mise en œuvre d'une décision ?",
+    ["Le contrôle des résultats", "Le contrôle des procédures", "L'autocontrôle et l'ajustement", "Le contrôle fiscal"], [0, 1, 2],
+    "Après avoir organisé l'action (objectifs, responsables, moyens, délais, indicateurs).");
+  multi("c5", "Quels types de structures (organigrammes) sont présentés dans le cours ?",
+    ["La structure fonctionnelle simple", "La structure hiérarchico-fonctionnelle (staff and line)", "La structure divisionnaire", "La structure matricielle", "La structure circulaire"], [0, 1, 2, 3],
+    "Les 4 modèles d'organigramme du cours.");
+  multi("c5", "Quels facteurs influencent le choix et l'évolution de la structure ?",
+    ["L'âge de l'organisation", "La technique appliquée", "La taille de l'entreprise", "Le style de management", "La couleur des bureaux"], [0, 1, 2, 3],
+    "Plus la fluctuation de l'environnement et l'adaptation à la stratégie retenue.");
+  multi("c5", "Quelles sont les étapes de la conduite du changement ?",
+    ["Préparer", "Mobiliser", "Accompagner", "Ancrer", "Imposer"], [0, 1, 2, 3],
+    "Préparer, mobiliser, accompagner, ancrer.");
+  multi("c5", "Quels sont les « M » du diagramme d'Ishikawa ?",
+    ["Main-d'œuvre", "Matériel", "Méthode", "Matière", "Milieu", "Marketing"], [0, 1, 2, 3, 4],
+    "Les 5M.");
+  multi("c5", "Que suppose la théorie Y de McGregor ?",
+    ["Les employés sont motivés par nature", "Ils cherchent à prendre des responsabilités", "Ils sont capables d'autonomie", "Ils doivent être constamment surveillés", "Ils sont intrinsèquement paresseux"], [0, 1, 2],
+    "Les deux dernières propositions décrivent la théorie X.");
+  multi("c5", "Quelles sont les étapes de la planification opérationnelle ?",
+    ["L'établissement d'objectifs SMART", "L'allocation des ressources nécessaires", "La conception des processus", "Le rachat d'un concurrent"], [0, 1, 2],
+    "Le rachat d'un concurrent est une décision stratégique.");
 
   // Identifiants stables (hash du texte)
   function h(s) { var x = 5381; for (var i = 0; i < s.length; i++) { x = ((x << 5) + x + s.charCodeAt(i)) | 0; } return (x >>> 0).toString(36); }
